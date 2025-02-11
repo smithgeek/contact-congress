@@ -14,6 +14,7 @@ jobs:
         env:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
             SUPABASE_PROJECT_ID: dblnkwjeybdvjxohxpzo
+            SUPABASE_DB_PWD: ${{ secrets.SUPABASE_DB_PWD }}
 
         steps:
             - uses: actions/checkout@v4
@@ -24,5 +25,5 @@ jobs:
 
             - run: cd supabase
             - run: supabase link --project-ref $SUPABASE_PROJECT_ID
-            - run: supabase db push
+            - run: supabase db push --password $SUPABASE_DB_PWD
             - run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
