@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "supabase"
+		},
+		{
+			"path": ".github"
 		}
 	],
 	"settings": {
