@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "web"
+		},
+		{
+			"path": "supabase"
+		}
+	],
+	"settings": {
+		"typescript.enablePromptUseWorkspaceTsdk": true,
+		"typescript.tsdk": ".yarn/sdks/typescript/lib"
+	}
+}
