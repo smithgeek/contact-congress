@@ -1,5 +1,5 @@
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
-import react from "@vitejs/plugin-react";
+import viteReact from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
@@ -11,8 +11,8 @@ export default defineConfig({
 			// e.g. use TypeScript check
 			typescript: true,
 		}),
-		react(),
-		TanStackRouterVite(),
+		TanStackRouterVite({ autoCodeSplitting: true }),
+		viteReact(),
 	],
 	resolve: {
 		alias: {
