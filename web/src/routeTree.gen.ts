@@ -11,10 +11,17 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AccountImport } from './routes/account'
 import { Route as IndexImport } from './routes/index'
 import { Route as MessagesTemplateIdImport } from './routes/messages/$templateId'
 
 // Create/Update Routes
+
+const AccountRoute = AccountImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -39,6 +46,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountImport
+      parentRoute: typeof rootRoute
+    }
     '/messages/$templateId': {
       id: '/messages/$templateId'
       path: '/messages/$templateId'
@@ -53,36 +67,41 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/messages/$templateId'
+  fullPaths: '/' | '/account' | '/messages/$templateId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/messages/$templateId'
-  id: '__root__' | '/' | '/messages/$templateId'
+  to: '/' | '/account' | '/messages/$templateId'
+  id: '__root__' | '/' | '/account' | '/messages/$templateId'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   MessagesTemplateIdRoute: typeof MessagesTemplateIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   MessagesTemplateIdRoute: MessagesTemplateIdRoute,
 }
 
@@ -97,11 +116,15 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/account",
         "/messages/$templateId"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/account": {
+      "filePath": "account.tsx"
     },
     "/messages/$templateId": {
       "filePath": "messages/$templateId.tsx"

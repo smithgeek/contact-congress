@@ -113,6 +113,7 @@ function MyMessagesCard() {
 			<CardContent>
 				<Authenticated>
 					<TemplateList templates={myMessages.data ?? []} />
+					{myMessages.data?.length === 0 && <Label className="text-muted-foreground italic">No messages found</Label>}
 				</Authenticated>
 				<NotAuthenticated>
 					<LoginFormDialog>

@@ -4,15 +4,26 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 
 import { useAuth } from "@/lib/useAuth";
+import { AuthError } from "@supabase/supabase-js";
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 
+type DisplayModes = "login" | "signup" | "checkEmail" | "authenticated" | "forgotPassword";
+
+function getErrorMessage(error: AuthError) {
+	if (error.code == "unexpected_failure") {
+		return "Oops, there was an error. Please try again later.";
+	}
+	return error.message;
+}
+
 function useLogin() {
 	const [error, setError] = useState<string | null>(null);
-	const [mode, setMode] = useState<"login" | "signup" | "verifyEmail" | "authenticated">("login");
+	const [emailMessage, setEmailMessage] = useState("Check your email to verify your account");
+	const [mode, setMode] = useState<DisplayModes>("login");
 	const signUp = useMutation({
 		mutationFn: async ({ email, password }: { email: string; password: string }) => {
 			const result = await supabase.auth.signUp({
@@ -22,7 +33,10 @@ function useLogin() {
 			});
 			if (result.error) {
 				console.error(result.error);
-				setError(result.error?.message ?? null);
+				setError(getErrorMessage(result.error));
+			} else {
+				setEmailMessage("Check your email to verify your account");
+				setMode("checkEmail");
 			}
 		},
 	});
@@ -34,9 +48,21 @@ function useLogin() {
 			});
 			if (result.error) {
 				console.error(result.error);
-				setError(result.error?.message ?? null);
+				setError(getErrorMessage(result.error));
 			} else {
 				setMode("authenticated");
+			}
+		},
+	});
+	const resetPassword = useMutation({
+		mutationFn: async ({ email }: { email: string }) => {
+			const result = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/account` });
+			if (result.error) {
+				console.error(result.error);
+				setError(getErrorMessage(result.error));
+			} else {
+				setEmailMessage("Check your email to reset your password");
+				setMode("checkEmail");
 			}
 		},
 	});
@@ -46,6 +72,8 @@ function useLogin() {
 		error,
 		mode,
 		setMode,
+		resetPassword,
+		emailMessage,
 	};
 }
 
@@ -62,10 +90,10 @@ export function LoginFormDialog({ children }: { children: ReactNode }) {
 		if (session?.user) {
 			setOpen(false);
 		}
-	}, [session]);
+	}, [session?.user]);
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger>{children}</DialogTrigger>
+			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent>
 				<LoginForm />
 			</DialogContent>
@@ -73,8 +101,31 @@ export function LoginFormDialog({ children }: { children: ReactNode }) {
 	);
 }
 
+function getTitle(mode: DisplayModes) {
+	if (mode === "forgotPassword") {
+		return "Password Reset";
+	}
+	if (mode === "signup") {
+		return "Sign up";
+	}
+	if (mode === "checkEmail") {
+		return "Email";
+	}
+	return "Login";
+}
+
+function getButtonAction(mode: DisplayModes) {
+	if (mode === "forgotPassword") {
+		return "Reset Password";
+	}
+	if (mode === "signup") {
+		return "Create Account";
+	}
+	return "Login";
+}
+
 function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
-	const { signUp, signIn, error, mode, setMode } = useLogin();
+	const { signUp, signIn, error, mode, setMode, resetPassword, emailMessage } = useLogin();
 	const { handleSubmit, register } = useForm<LoginFormState>();
 
 	function onSubmit(form: LoginFormState) {
@@ -83,43 +134,56 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form
 				email: form.email,
 				password: form.password,
 			});
-		} else {
+		} else if (mode === "login") {
 			signIn.mutate({
 				email: form.email,
 				password: form.password,
 			});
+		} else if (mode === "forgotPassword") {
+			resetPassword.mutate({ email: form.email });
 		}
 	}
 	return (
 		<>
-			<DialogTitle className="text-2xl">{mode === "login" ? "Login" : "Sign up"}</DialogTitle>
-			{mode === "verifyEmail" && <Label>Check your email to verify your account</Label>}
-			{mode !== "verifyEmail" && (
+			<DialogTitle className="text-2xl">{getTitle(mode)}</DialogTitle>
+			{mode === "checkEmail" && <Label>{emailMessage}</Label>}
+			{mode !== "checkEmail" && (
 				<form onSubmit={handleSubmit(onSubmit)} {...props}>
 					<div className="flex flex-col gap-6">
 						<div className="grid gap-2">
 							<Label htmlFor="email">Email</Label>
 							<Input id="email" type="email" required {...register("email")} tabIndex={1} />
 						</div>
-						<div className="grid gap-2">
-							<div className="flex items-center">
-								<Label htmlFor="password">Password</Label>
-								{mode === "login" && (
-									<a href="#" className="ml-auto inline-block text-sm underline-offset-4 hover:underline" tabIndex={4}>
-										Forgot your password?
-									</a>
-								)}
+						{mode !== "forgotPassword" && (
+							<div className="grid gap-2">
+								<div className="flex items-center justify-between">
+									<Label htmlFor="password">Password</Label>
+									{mode === "login" && (
+										<Button variant="link" tabIndex={4} onClick={() => setMode("forgotPassword")}>
+											Forgot your password?
+										</Button>
+									)}
+								</div>
+								<Input id="password" type="password" required {...register("password")} tabIndex={2} />
 							</div>
-							<Input id="password" type="password" required {...register("password")} tabIndex={2} />
-						</div>
-						{error && <Label className="text-red-500">{error}</Label>}
+						)}
+						{error && (
+							<div className="flex justify-between items-center">
+								<Label className="text-red-500">{error}</Label>
+								<a href="https://contactmycongress.userjot.com/board/bugs" target="_blank">
+									<Button variant="link" type="button">
+										Report Issue
+									</Button>
+								</a>
+							</div>
+						)}
 						<Button
 							type="submit"
 							className="w-full"
 							pending={mode === "signup" ? signUp.isPending : signIn.isPending}
 							tabIndex={3}
 						>
-							{mode === "login" ? <span>Login</span> : <span>Create Account</span>}
+							<span>{getButtonAction(mode)}</span>
 						</Button>
 					</div>
 					<div className="mt-4 text-center text-sm">
@@ -129,7 +193,7 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form
 								Sign Up
 							</Button>
 						)}
-						{mode === "signup" && (
+						{mode !== "login" && (
 							<Button type="button" variant="link" onClick={() => setMode("login")} pending={signIn.isPending} tabIndex={6}>
 								Login
 							</Button>

@@ -12,7 +12,7 @@ import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
 import { axiosInstance } from "@kubb/swagger-client/client";
 import { useMutation } from "@tanstack/react-query";
-import { HomeIcon, LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
+import { HomeIcon, LogOutIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
 
 axiosInstance.defaults.baseURL = `${location.origin}/api`;
 
@@ -61,6 +61,11 @@ function Navbar() {
 			<div className="flex-1"></div>
 			<ThemeButton />
 			<Authenticated>
+				<Link to="/account">
+					<Button variant="ghost">
+						<User2Icon />
+					</Button>
+				</Link>
 				<Button onClick={() => signOut.mutate()} pending={signOut.isPending} variant="ghost" size="icon">
 					<LogOutIcon />
 				</Button>
