@@ -2,6 +2,7 @@ import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 
 // components
+import { ReportIssueLink } from "@/components/ReportIssueLink";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { useTheme } from "@/components/ui/themeProvider";
@@ -86,7 +87,8 @@ function PageStructure() {
 					<TanStackRouterDevtools />
 				</DevToolsWrapper>
 				<Toaster />
-				<footer className="min-h-10 text-muted-foreground flex justify-center items-center">
+				<footer className="min-h-10 text-muted-foreground flex justify-center items-center gap-4">
+					<ReportIssueLink className="text-muted-foreground" />
 					<a href="https://github.com/smithgeek/contact-congress">
 						<GithubIcon className="size-6 block dark:hidden" />
 						<GithubIconWhite className="size-6 dark:block hidden" />

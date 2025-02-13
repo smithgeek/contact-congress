@@ -9,6 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ReactNode } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { ReportIssueLink } from "./ReportIssueLink";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 
 type DisplayModes = "login" | "signup" | "checkEmail" | "authenticated" | "forgotPassword";
@@ -170,11 +171,7 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form
 						{error && (
 							<div className="flex justify-between items-center">
 								<Label className="text-red-500">{error}</Label>
-								<a href="https://contactmycongress.userjot.com/board/bugs" target="_blank">
-									<Button variant="link" type="button">
-										Report Issue
-									</Button>
-								</a>
+								<ReportIssueLink />
 							</div>
 						)}
 						<Button
