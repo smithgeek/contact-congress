@@ -5,6 +5,8 @@ import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { useTheme } from "@/components/ui/themeProvider";
+import { GithubIcon } from "@/icons/GithubIcon";
+import { GithubIconWhite } from "@/icons/GithubIconWhite";
 import { supabase } from "@/lib/supabase";
 import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
@@ -17,7 +19,7 @@ axiosInstance.defaults.baseURL = `${location.origin}/api`;
 function PageContent() {
 	return (
 		<>
-			<main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col bg-muted/40">
+			<main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col bg-muted/40 pb-10">
 				<Outlet />
 			</main>
 		</>
@@ -69,16 +71,24 @@ function Navbar() {
 
 function PageStructure() {
 	return (
-		<div className="flex flex-col min-h-[100vh]">
-			<Navbar />
-			<div className="flex-1 flex flex-col">
-				<PageContent />
+		<>
+			<div className="flex flex-col min-h-[100vh] pb-2">
+				<Navbar />
+				<div className="flex-1 flex flex-col">
+					<PageContent />
+				</div>
+				<DevToolsWrapper>
+					<TanStackRouterDevtools />
+				</DevToolsWrapper>
+				<Toaster />
+				<footer className="min-h-10 text-muted-foreground flex justify-center items-center">
+					<a href="https://github.com/smithgeek/contact-congress">
+						<GithubIcon className="size-6 block dark:hidden" />
+						<GithubIconWhite className="size-6 dark:block hidden" />
+					</a>
+				</footer>
 			</div>
-			<DevToolsWrapper>
-				<TanStackRouterDevtools />
-			</DevToolsWrapper>
-			<Toaster />
-		</div>
+		</>
 	);
 }
 

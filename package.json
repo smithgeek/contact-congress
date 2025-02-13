@@ -1,0 +1,24 @@
+{
+	"name": "contact-congress-monorepo",
+	"version": "1.0.0",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/pg": "8.11.11",
+		"pg": "8.13.3",
+		"tsx": "4.19.2"
+	},
+	"scripts": {
+		"generate": "supabase gen types typescript --local > web/src/generated/database.types.ts",
+		"supa": "supabase",
+		"seed": "snaplet-seed sync && tsx seed.ts > supabase/seed.sql",
+		"seed:sync": "snaplet-seed sync",
+		"seed:generate": "tsx seed.ts > supabase/seed.sql",
+		"db:reset": "supabase db reset",
+		"db:migration": "supabase db diff -f "
+	},
+	"dependencies": {
+		"@snaplet/copycat": "6.0.0",
+		"@snaplet/seed": "0.98.0",
+		"supabase": "2.12.1"
+	}
+}

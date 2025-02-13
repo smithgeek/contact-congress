@@ -67,6 +67,13 @@ export type Database = {
             referencedRelation: "templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "template_activity_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "trending_templates"
+            referencedColumns: ["id"]
+          },
         ]
       }
       templates: {
@@ -105,7 +112,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      trending_templates: {
+        Row: {
+          activity_count: number | null
+          id: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       templates_search: {

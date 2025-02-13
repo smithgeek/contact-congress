@@ -25,11 +25,15 @@ export const Route = createFileRoute("/")({
 	component: Page,
 });
 
-function useTopMessages() {
+function useTrendingMessages() {
 	return useQuery({
 		queryKey: queryKeys.trendingMessages,
 		queryFn: async () => {
-			const result = await supabase.from("templates").select("id, title").order("favorites", { ascending: false }).limit(10);
+			const result = await supabase
+				.from("trending_templates")
+				.select()
+				.order("activity_count", { ascending: false })
+				.returns<{ id: string; title: string }[]>();
 			return result.data;
 		},
 	});
@@ -69,7 +73,7 @@ function useMyMessages() {
 
 function TemplateList({ templates }: { templates: Pick<Tables<"templates">, "id" | "title">[] }) {
 	return (
-		<>
+		<div className="flex flex-col gap-1">
 			{templates.map((m) => {
 				return (
 					<Link to={`/messages/${m.id}`} key={m.id}>
@@ -79,7 +83,7 @@ function TemplateList({ templates }: { templates: Pick<Tables<"templates">, "id"
 					</Link>
 				);
 			})}
-		</>
+		</div>
 	);
 }
 
@@ -144,7 +148,7 @@ function MyFavoritesCard() {
 }
 
 function TrendingTopicsCard() {
-	const topMessagesQuery = useTopMessages();
+	const topMessagesQuery = useTrendingMessages();
 	return (
 		<Card>
 			<CardHeader>

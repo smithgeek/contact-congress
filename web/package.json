@@ -8,8 +8,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-		"addui": "yarn dlx shadcn@latest add --",
-		"generate": "npx supabase gen types typescript --local > generated\\database.types.ts"
+		"addui": "yarn dlx shadcn@latest add --"
 	},
 	"dependencies": {
 		"@monaco-editor/react": "^4.6.0",
