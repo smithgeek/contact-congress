@@ -26,6 +26,8 @@ export interface SimplifiedLegislator {
 	contactForm: string;
 	currentTerm: Legislator["terms"][0];
 	fullData: Legislator;
+	title: string;
+	memberOf: string;
 }
 
 function sortLegislator(a: Legislator, b: Legislator) {
@@ -72,6 +74,8 @@ function createSimplifiedLegislator(legislator: Legislator): SimplifiedLegislato
 		id: legislator.id.bioguide,
 		phone: currentTerm.phone ?? "",
 		website: currentTerm.url ?? "",
+		title: currentTerm.type == "sen" ? "Senator" : "Representative",
+		memberOf: currentTerm.type === "sen" ? "Senate" : "House",
 	};
 }
 

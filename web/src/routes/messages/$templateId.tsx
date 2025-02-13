@@ -65,6 +65,8 @@ function createPlaceholderLegislator(): SimplifiedLegislator {
 		id: uuidv7(),
 		phone: "",
 		website: "",
+		memberOf: "[House/Senate]",
+		title: "[Representative/Senator]",
 	};
 }
 

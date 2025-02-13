@@ -152,6 +152,10 @@ export const MonacoEditor = (props: MonacoEditorProps): JSX.Element | null => {
 					</DropdownMenuTrigger>
 					<DropdownMenuContent>
 						<DropdownMenuItem onClick={() => insertText("{{legislator.name}}")}>Name</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => insertText("{{legislator.title}}")}>
+							Title (Representative/Senator)
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => insertText("{{legislator.memberOf}}")}>Member Of (House/Senate)</DropdownMenuItem>
 						<DropdownMenuItem onClick={() => insertText("{{legislator.address}}")}>Address</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
