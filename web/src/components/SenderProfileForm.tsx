@@ -1,50 +1,53 @@
-import { SenderProfile, useSenderProfile } from "@/lib/useSenderProfile";
+import { queryKeys } from "@/lib/queryKeys";
+import { supabase } from "@/lib/supabase";
+import { LegislativeDistrict, SenderProfile, useSenderProfile } from "@/lib/useSenderProfile";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
 export function SenderProfileForm({
 	onSubmit,
-	defaultSenderProfile,
-	showReset,
+	onCancel,
 }: {
 	onSubmit: (senderProfile: SenderProfile | null) => void;
-	defaultSenderProfile?: SenderProfile | null;
-	showReset?: boolean;
+	onCancel?: () => void;
 }) {
-	const { setSenderProfile } = useSenderProfile();
+	const senderProfileQuery = useSenderProfile();
 	const { register, handleSubmit, reset } = useForm<SenderProfile>({
-		defaultValues: defaultSenderProfile ?? {},
+		defaultValues: senderProfileQuery.data ?? {},
+	});
+	const queryClient = useQueryClient();
+	const mutation = useMutation({
+		mutationFn: async (profile: SenderProfile | null) => {
+			if (profile) {
+				const address = [profile.address.street, profile.address.city, profile.address.state, profile.address.zip]
+					.filter(Boolean)
+					.join(" ");
+				const response = await supabase.functions.invoke<LegislativeDistrict>("district-lookup", {
+					body: { address },
+				});
+				profile.district = response.data;
+				localStorage.setItem(queryKeys.localStorage.senderProfile, JSON.stringify(profile));
+			} else {
+				for (const key of queryKeys.localStorage.localProfile()) {
+					localStorage.removeItem(key);
+				}
+			}
+			queryClient.setQueryData(queryKeys.senderProfile(), profile);
+		},
+		onSuccess(_, profile) {
+			onSubmit(profile);
+		},
 	});
 	return (
 		<form
 			className="flex flex-col gap-1"
 			onSubmit={handleSubmit((profile) => {
-				setSenderProfile(profile);
-				onSubmit(profile);
+				mutation.mutate(profile);
 			})}
 		>
-			<Label className="text-muted-foreground">
-				<span>We keep your information private</span>
-				<Dialog>
-					<DialogTrigger>
-						<Button type="button" variant="link">
-							Learn More
-						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>Privacy</DialogTitle>
-						</DialogHeader>
-						We respect your privacy. The information you enter is only stored in your browser and never saved on a server. Your
-						name, email, and phone number are used solely for inserting personal details into messages and are not shared or
-						stored elsewhere. Address information is sent to a separate service only to look up your congressional district, but
-						it is never stored or linked to any other data.
-					</DialogContent>
-				</Dialog>
-			</Label>
 			<Label htmlFor="name">Name</Label>
 			<Input id="name" {...register("name")} />
 			<Label>Address</Label>
@@ -58,20 +61,26 @@ export function SenderProfileForm({
 			<Input id="email" {...register("email")} />
 			<Label htmlFor="phoneNumber">Phone Number</Label>
 			<Input id="phoneNumber" {...register("phoneNumber")} />
-			<div className="flex justify-between">
-				{showReset && (
+			<div className="flex justify-between mt-4">
+				<Button type="submit" pending={mutation.isPending}>
+					Save
+				</Button>
+				<div className="flex gap-2">
 					<Button
 						theme="danger"
-						onClick={() => {
-							onSubmit(null);
-							reset();
-						}}
+						onClick={() =>
+							reset({ name: "", address: { city: "", state: "", street: "", zip: "" }, email: "", phoneNumber: "" })
+						}
 						type="button"
 					>
 						Reset
 					</Button>
-				)}
-				<Button type="submit">Ok</Button>
+					{onCancel && (
+						<Button theme="secondary" onClick={onCancel}>
+							Cancel
+						</Button>
+					)}
+				</div>
 			</div>
 		</form>
 	);

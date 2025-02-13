@@ -1,7 +1,7 @@
 import { Legislator } from "@/types/legislature";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "./queryKeys";
-import { useMyDistrictInfo } from "./useMyDistrictInfo";
+import { useSenderProfile } from "./useSenderProfile";
 
 function useLegislators() {
 	return useQuery({
@@ -75,39 +75,53 @@ function createSimplifiedLegislator(legislator: Legislator): SimplifiedLegislato
 	};
 }
 
+export type SenderLegislators = {
+	legislators: SimplifiedLegislator[] | null;
+};
+
 function useDistrictLegislators({ state, district }: { state: string | null; district: string | null }) {
 	const legislators = useLegislators();
-	return useQuery({
+	return useQuery<SenderLegislators>({
 		queryKey: queryKeys.myLegislators({ state, district }),
-		initialData: [],
 		queryFn: async () => {
 			if (district === null || state === null) {
-				return [];
+				return {
+					legislators: null,
+				};
 			}
-			return (
-				legislators.data
-					?.filter((l) => {
-						const index = l.terms.length - 1;
-						if (l.terms[index].state !== state) {
+			return {
+				legislators:
+					legislators.data
+						?.filter((l) => {
+							const index = l.terms.length - 1;
+							if (l.terms[index].state !== state) {
+								return false;
+							}
+							if (l.terms[index].type === "sen") {
+								return true;
+							}
+							if (l.terms[index].district?.toString() === district) {
+								return true;
+							}
 							return false;
-						}
-						if (l.terms[index].type === "sen") {
-							return true;
-						}
-						if (l.terms[index].district?.toString() === district) {
-							return true;
-						}
-						return false;
-					})
-					.sort(sortLegislator)
-					.map(createSimplifiedLegislator) ?? []
-			);
+						})
+						.sort(sortLegislator)
+						.map(createSimplifiedLegislator) ?? [],
+			};
 		},
 		enabled: legislators.data !== undefined,
+		refetchInterval: false,
+		refetchIntervalInBackground: false,
+		refetchOnMount: false,
+		refetchOnReconnect: false,
+		refetchOnWindowFocus: false,
 	});
 }
 
 export function useMyLegislators() {
-	const districtQuery = useMyDistrictInfo();
-	return useDistrictLegislators({ state: districtQuery.data.stateAbbreviation, district: districtQuery.data.districtNumber });
+	const senderProfile = useSenderProfile();
+	return useDistrictLegislators({
+		state: senderProfile.data?.district?.stateAbbreviation ?? null,
+		district: senderProfile.data?.district?.districtNumber ?? null,
+	});
 }

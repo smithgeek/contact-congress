@@ -2,17 +2,15 @@ import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 
 // components
-import { LoginForm } from "@/components/login-form";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { useTheme } from "@/components/ui/themeProvider";
 import { supabase } from "@/lib/supabase";
-import { Authenticated, NotAuthenticated } from "@/lib/useAuth";
+import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
 import { axiosInstance } from "@kubb/swagger-client/client";
 import { useMutation } from "@tanstack/react-query";
-import { HomeIcon, LogOutIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
+import { HomeIcon, LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
 
 axiosInstance.defaults.baseURL = `${location.origin}/api`;
 
@@ -65,18 +63,6 @@ function Navbar() {
 					<LogOutIcon />
 				</Button>
 			</Authenticated>
-			<NotAuthenticated>
-				<Dialog>
-					<DialogTrigger>
-						<Button variant="ghost">
-							<User2Icon />
-						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<LoginForm />
-					</DialogContent>
-				</Dialog>
-			</NotAuthenticated>
 		</header>
 	);
 }

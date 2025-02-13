@@ -1,5 +1,5 @@
-import { LegislativeDistrict } from "@/lib/useMyDistrictInfo";
 import { SimplifiedLegislator } from "@/lib/useMyLegislators";
+import { LegislativeDistrict } from "@/lib/useSenderProfile";
 import { Label } from "./ui/label";
 
 type DistrictLabelProps =

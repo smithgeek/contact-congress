@@ -2,25 +2,23 @@ import { LegislatorImage } from "@/components/LegislatorImage";
 import { LegislatorTypeLabel } from "@/components/LegislatorTypeLabel";
 import { LoginFormDialog } from "@/components/login-form";
 import { PartyLabel } from "@/components/PartyLabel";
+import { PrivateInfoLabel } from "@/components/PrivateInfoLabel";
 import { SenderProfileForm } from "@/components/SenderProfileForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tables } from "@/generated/database.types";
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase";
 import { Authenticated, NotAuthenticated, useAuth } from "@/lib/useAuth";
 import { useFavorites } from "@/lib/useFavorites";
 import { useMyLegislators } from "@/lib/useMyLegislators";
-import { useSenderProfile } from "@/lib/useSenderProfile";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GlobeIcon, MailIcon, SearchIcon, StarIcon } from "lucide-react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Fragment } from "react/jsx-runtime";
 import { uuidv7 } from "uuidv7";
 
 export const Route = createFileRoute("/")({
@@ -125,66 +123,6 @@ function MyMessagesCard() {
 	);
 }
 
-function MyLegislatorsCard() {
-	const myLegislators = useMyLegislators();
-	const { senderProfile, setSenderProfile } = useSenderProfile();
-	return (
-		<Card>
-			<CardHeader className="flex justify-between flex-row items-center">
-				<h2 className="text-2xl">My Legislators</h2>
-				{senderProfile && (
-					<Button theme="danger" onClick={() => setSenderProfile(null)}>
-						Reset
-					</Button>
-				)}
-			</CardHeader>
-			<CardContent>
-				{senderProfile && (
-					<>
-						{myLegislators.data.length === 0 && (
-							<div className="flex flex-col gap-8">
-								<Skeleton className="h-16 w-[250px]" />
-								<Skeleton className="h-16 w-[250px]" />
-								<Skeleton className="h-16 w-[250px]" />
-							</div>
-						)}
-						<div className="grid grid-cols-[auto_auto_1fr_1fr] lg:grid-cols-[auto_auto_auto_1fr] gap-2 items-center gap-y-8">
-							{myLegislators.data.map((l) => {
-								return (
-									<Fragment key={l.id}>
-										<LegislatorImage legislator={l} size="50" />
-										<div className="flex flex-col gap-1">
-											<div className="gap-2 flex items-center">
-												<Label>{l.name}</Label>
-												<PartyLabel short party={l.currentTerm.party} />
-											</div>
-											<LegislatorTypeLabel legislator={l} />
-											<Button variant="link" className="m-0 p-0" size="xs">
-												{l.phone}
-											</Button>
-										</div>
-										<Button size="icon" className="justify-self-center">
-											<MailIcon />
-										</Button>
-										<Button size="icon" className="justify-self-center lg:justify-self-start">
-											<GlobeIcon />
-										</Button>
-									</Fragment>
-								);
-							})}
-						</div>
-					</>
-				)}
-				{!senderProfile && (
-					<>
-						<SenderProfileForm onSubmit={() => {}} />
-					</>
-				)}
-			</CardContent>
-		</Card>
-	);
-}
-
 function MyFavoritesCard() {
 	const favorites = useMyFavoriteMessages();
 	return (
@@ -256,6 +194,67 @@ function WelcomeCard() {
 				{searchResults.data && searchResults.data.length === 0 && (
 					<Label className="text-muted-foreground italic">No results</Label>
 				)}
+			</CardContent>
+		</Card>
+	);
+}
+
+function MyLegislatorsCard() {
+	const myLegislators = useMyLegislators();
+	const [mode, setMode] = useState<"view" | "edit">("view");
+	return (
+		<Card>
+			<CardHeader>
+				<div className="flex justify-between flex-row items-center">
+					<h2 className="text-2xl">My Legislators</h2>
+					{mode === "view" && <Button onClick={() => setMode("edit")}>Update</Button>}
+				</div>
+				{mode === "edit" && (
+					<CardDescription>
+						<PrivateInfoLabel />
+					</CardDescription>
+				)}
+			</CardHeader>
+
+			<CardContent>
+				{mode === "view" && (
+					<>
+						{myLegislators.data?.legislators === null && <Label>No legislators found. Try updating your location.</Label>}
+						<div className="grid grid-cols-[auto_auto_1fr_1fr] lg:grid-cols-[auto_auto_auto_1fr] gap-2 items-center gap-y-8">
+							{myLegislators.data?.legislators?.map((l) => {
+								return (
+									<Fragment key={l.id}>
+										<LegislatorImage legislator={l} size="50" />
+
+										<div className="flex flex-col gap-1">
+											<div className="gap-2 flex items-center">
+												<Label>{l.name}</Label>
+												<PartyLabel short party={l.currentTerm.party} />
+											</div>
+											<LegislatorTypeLabel legislator={l} />
+											<a href={`tel:${l.phone}`}>
+												<Button variant="link" className="m-0 p-0" size="xs">
+													{l.phone}
+												</Button>
+											</a>
+										</div>
+										<a href={l.contactForm} target="_blank">
+											<Button size="icon" className="justify-self-center">
+												<MailIcon />
+											</Button>
+										</a>
+										<a href={l.website} target="_blank">
+											<Button size="icon" className="justify-self-center lg:justify-self-start">
+												<GlobeIcon />
+											</Button>
+										</a>
+									</Fragment>
+								);
+							})}
+						</div>
+					</>
+				)}
+				{mode === "edit" && <SenderProfileForm onSubmit={() => setMode("view")} onCancel={() => setMode("view")} />}
 			</CardContent>
 		</Card>
 	);

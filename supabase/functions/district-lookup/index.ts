@@ -4,14 +4,14 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeaders } from "../_shared/cors.ts";
 
-Deno.serve(async (req) => {
-	if(req.method === 'OPTIONS') {
-		return new Response('ok', { headers: corsHeaders});
+Deno.serve(async req => {
+	if (req.method === "OPTIONS") {
+		return new Response("ok", { headers: corsHeaders });
 	}
-  const { address } = await req.json()
-  const response = await fetch(
+	const { address } = await req.json();
+	const response = await fetch(
 		`https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${encodeURIComponent(
 			address
 		)}&benchmark=Public_AR_Current&format=json`,
@@ -21,7 +21,8 @@ Deno.serve(async (req) => {
 	);
 	if (response.ok) {
 		const geocodeResponse = await response.json();
-		const coordinates = geocodeResponse.result.addressMatches[0].coordinates;
+		const coordinates =
+			geocodeResponse.result.addressMatches[0].coordinates;
 		const districtFetch = await fetch(
 			`https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x=${coordinates.x}&y=${coordinates.y}&benchmark=Public_AR_Current&vintage=Current_Current&layers=CD&format=json`,
 			{
@@ -30,27 +31,33 @@ Deno.serve(async (req) => {
 		);
 		if (districtFetch.ok) {
 			const districtResponse = await districtFetch.json();
-			const congressKey = Object.keys(districtResponse.result.geographies).filter((key) =>
-				key.includes("Congressional Districts")
-			);
-			const district = districtResponse.result.geographies[congressKey[0]][0];
-			const districtNumber = district.BASENAME.includes("at Large") ? "0" : district.BASENAME;
+			const congressKey = Object.keys(
+				districtResponse.result.geographies
+			).filter(key => key.includes("Congressional Districts"));
+			const district =
+				districtResponse.result.geographies[congressKey[0]][0];
+			const districtNumber = district.BASENAME.includes("at Large")
+				? "0"
+				: district.BASENAME;
 			const state = districtResponse.result.geographies["States"][0];
 			const stateAbbreviation = state.STUSAB;
 			const data = { stateAbbreviation, districtNumber };
-			
-			return new Response(
-				JSON.stringify(data),
-				{ headers: { ...corsHeaders, "Content-Type": "application/json" } },
-			)
+
+			return new Response(JSON.stringify(data), {
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+			});
 		}
 	}
 
-  return new Response(
-    JSON.stringify({ stateAbbreviation: null, districtNumber: null }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-  )
-})
+	return new Response(
+		JSON.stringify({
+			stateAbbreviation: null,
+			districtNumber: null,
+			error: "Unable to determine your district. Check your address and try again.",
+		}),
+		{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
+	);
+});
 
 /* To invoke locally:
 

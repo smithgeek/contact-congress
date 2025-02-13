@@ -1,6 +1,12 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "./queryKeys";
-import { useUpdateMyDistrict } from "./useMyDistrictInfo";
+
+export interface LegislativeDistrict {
+	stateAbbreviation: string | null;
+	districtNumber: string | null;
+	date?: number;
+	error?: string | null;
+}
 
 export interface SenderProfile {
 	name: string;
@@ -12,6 +18,7 @@ export interface SenderProfile {
 	};
 	email: string;
 	phoneNumber: string;
+	district?: LegislativeDistrict | null;
 }
 
 function getSavedSenderProfile(): SenderProfile | null {
@@ -23,28 +30,11 @@ function getSavedSenderProfile(): SenderProfile | null {
 }
 
 export function useSenderProfile() {
-	const queryClient = useQueryClient();
-	const query = useQuery<SenderProfile | null>({
+	return useQuery<SenderProfile | null>({
 		queryKey: queryKeys.senderProfile(),
 		initialData: getSavedSenderProfile() ?? null,
 		queryFn: () => {
 			return getSavedSenderProfile();
 		},
 	});
-	const updateDistrict = useUpdateMyDistrict();
-	return {
-		senderProfile: query.data,
-		setSenderProfile: (u: SenderProfile | null) => {
-			queryClient.setQueryData(queryKeys.senderProfile(), u);
-			if (u) {
-				localStorage.setItem(queryKeys.localStorage.senderProfile, JSON.stringify(u));
-			} else {
-				for (const key of queryKeys.localStorage.localProfile()) {
-					localStorage.removeItem(key);
-				}
-			}
-			updateDistrict.mutate(u);
-		},
-		query,
-	};
 }

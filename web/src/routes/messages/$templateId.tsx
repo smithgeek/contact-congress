@@ -4,6 +4,7 @@ import { LegislatorTypeLabel } from "@/components/LegislatorTypeLabel";
 import { LoginFormDialog } from "@/components/login-form";
 import { MonacoEditor } from "@/components/MonacoEditor";
 import { PartyLabel } from "@/components/PartyLabel";
+import { PrivateInfoLabel } from "@/components/PrivateInfoLabel";
 import { SenderProfileForm } from "@/components/SenderProfileForm";
 import { ShareButton } from "@/components/ShareButton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,9 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
+import { Tables } from "@/generated/database.types";
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
@@ -29,15 +30,15 @@ import { Legislator } from "@/types/legislature";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Liquid } from "liquidjs";
-import { AlertTriangleIcon, ExternalLinkIcon, FlagIcon, InfoIcon, Loader2Icon, PencilIcon, StarIcon } from "lucide-react";
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { AlertTriangleIcon, ExternalLinkIcon, FlagIcon, PencilIcon, StarIcon } from "lucide-react";
+import { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { uuidv7 } from "uuidv7";
 
 const engine = new Liquid({});
 
 export const Route = createFileRoute("/messages/$templateId")({
-	component: Page,
+	component: PageWrapper,
 });
 
 function createDefaultSenderProfile(): SenderProfile {
@@ -69,55 +70,6 @@ function createPlaceholderLegislator(): SimplifiedLegislator {
 
 function removeNonDigits(s: string) {
 	return s.replace(/\D/g, "");
-}
-
-function SenderProfileEditor({
-	onSubmit,
-	defaultSenderProfile,
-}: {
-	onSubmit: (senderProfile: SenderProfile | null) => void;
-	defaultSenderProfile: SenderProfile | null;
-}) {
-	const [mode, setMode] = useState<"edit" | "view">(defaultSenderProfile === null ? "edit" : "view");
-
-	return (
-		<div className="flex w-full items-center gap-1">
-			<div
-				className="flex gap-1 p-2 lg:p-2 border rounded-md items-center w-full hover:bg-muted cursor-pointer"
-				onClick={() => {
-					setMode("edit");
-				}}
-			>
-				<div className="flex lg:flex-col flex-1 gap-2 lg:gap-0">
-					<span>{defaultSenderProfile?.name ?? "Not Created"}</span>
-					<span className="hidden lg:block">
-						{[defaultSenderProfile?.address.city, defaultSenderProfile?.address.state].filter(Boolean).join(" ")}
-					</span>
-				</div>
-				<PencilIcon className="size-4" />
-			</div>
-			<Dialog
-				open={mode === "edit"}
-				onOpenChange={(o) => {
-					setMode(o ? "edit" : "view");
-				}}
-			>
-				<DialogContent>
-					<DialogTitle>
-						<label className="text-2xl">Sender Profile</label>
-					</DialogTitle>
-					<SenderProfileForm
-						onSubmit={(p) => {
-							setMode("view");
-							onSubmit(p);
-						}}
-						defaultSenderProfile={defaultSenderProfile}
-						showReset
-					/>
-				</DialogContent>
-			</Dialog>
-		</div>
-	);
 }
 
 function CopyButton({ text, className }: { text: string; className?: string }) {
@@ -179,7 +131,7 @@ function LegislatorButtonContent({ legislator }: { legislator: SimplifiedLegisla
 
 function LegislatorDetails({ legislator, onActivity }: { legislator: SimplifiedLegislator; onActivity: (activity: Activity) => void }) {
 	return (
-		<div className="grid grid-cols-[auto_1fr] gap-2">
+		<div className="grid grid-cols-[auto_1fr] gap-2 text-left">
 			<span className="col-span-2">
 				{legislator.name} <PartyLabel party={legislator.currentTerm.party} />
 			</span>
@@ -194,7 +146,7 @@ function LegislatorDetails({ legislator, onActivity }: { legislator: SimplifiedL
 				</Button>
 			</a>
 			<span>Website:</span>
-			<a href={legislator.currentTerm.url} target="_blank">
+			<a href={legislator.currentTerm.url} target="_blank" className="overflow-hidden">
 				<Button variant="link" size="xs" className="m-0 p-0">
 					{legislator.currentTerm.url}
 				</Button>
@@ -207,7 +159,7 @@ function LegislatorDetails({ legislator, onActivity }: { legislator: SimplifiedL
 }
 
 function useTemplate(id: string) {
-	return useQuery({
+	return useQuery<Tables<"templates"> | null>({
 		queryKey: queryKeys.template(id),
 		queryFn: async () => {
 			const result = await supabase.from("templates").select().eq("id", id);
@@ -265,20 +217,108 @@ function camelToSentence(text: string) {
 		.replace(/^./, (str) => str.toUpperCase()); // Capitalize the first letter
 }
 
-function Page() {
+function MyLegislatorsCard({
+	selectedLegislator,
+	setSelectedLegislatorId,
+	templateId,
+}: {
+	selectedLegislator: SimplifiedLegislator | undefined;
+	setSelectedLegislatorId: (id: string) => void;
+	templateId: string;
+}) {
+	const sendActivity = useSendActivity();
 	const myLegislators = useMyLegislators();
-	const [selectedLegislatorId, setSelectedLegislatorId] = useState<string | null>(null);
-	const selectedLegislator = myLegislators.data?.find((l) => l.id === selectedLegislatorId);
-	const { senderProfile, setSenderProfile } = useSenderProfile();
+	const [mode, setMode] = useState<"view" | "edit">("view");
+	return (
+		<>
+			<div className="flex justify-between flex-row items-center mb-2">
+				<h2 className="text-2xl text-black dark:text-white">My Legislators</h2>
+				{mode === "view" && (
+					<Button variant="link" onClick={() => setMode("edit")}>
+						Update
+					</Button>
+				)}
+			</div>
+			{mode === "edit" && <PrivateInfoLabel />}
+
+			<div>
+				{mode === "view" && (
+					<>
+						{myLegislators.data?.legislators === null && <Label>No legislators found. Try updating your location.</Label>}
+						<div className="flex flex-col gap-2">
+							{myLegislators.data?.legislators?.map((l) => {
+								return (
+									<div
+										key={l.id}
+										className={cn(
+											"w-full border rounded-md cursor-pointer p-2",
+											{
+												"bg-blue-300 dark:bg-blue-950": selectedLegislator?.fullData.id.bioguide === l.id,
+											},
+											{
+												"hover:bg-muted": selectedLegislator?.fullData.id.bioguide !== l.id,
+											}
+										)}
+										style={{ gridColumn: "1 / -1" }}
+										onClick={() => setSelectedLegislatorId(l.id)}
+									>
+										<LegislatorButtonContent legislator={l} />
+									</div>
+								);
+							})}
+						</div>
+					</>
+				)}
+				{mode === "edit" && <SenderProfileForm onSubmit={() => setMode("view")} onCancel={() => setMode("view")} />}
+			</div>
+			<Separator orientation="horizontal" className="my-2" />
+			{selectedLegislator && (
+				<div className="px-3">
+					<LegislatorDetails
+						legislator={selectedLegislator}
+						onActivity={(a) => sendActivity.mutate({ id: templateId, activity: a })}
+					/>
+				</div>
+			)}
+		</>
+	);
+}
+
+function getInitialEditTemplate(template: Tables<"templates"> | null) {
+	if (template === null) {
+		const queryParams = new URLSearchParams(location.search);
+		return {
+			message: queryParams.get("message") ?? messagePlaceholder,
+			subject: queryParams.get("subject") ?? "",
+			title: queryParams.get("title") ?? "",
+		};
+	}
+	return null;
+}
+
+function PageWrapper() {
 	const { templateId } = Route.useParams();
 	const templateQuery = useTemplate(templateId);
-	const [senderCustom, setSenderCustom] = useSessionStorageState<{ custom?: { [key: string]: string }; template?: EditableTemplate }>(
-		`${templateId}:sender-custom`,
-		{}
-	);
-	const template = { ...templateQuery.data, ...senderCustom.template };
+	if (templateQuery.isPending) {
+		return null;
+	}
+	return <Page template={templateQuery.data ?? null} />;
+}
+
+function Page(props: { template: Tables<"templates"> | null }) {
+	const myLegislators = useMyLegislators();
+	const [selectedLegislatorId, setSelectedLegislatorId] = useState<string | null>(null);
+	const selectedLegislator = myLegislators.data?.legislators?.find((l) => l.id === selectedLegislatorId);
+	const senderProfileQuery = useSenderProfile();
+	const { templateId } = Route.useParams();
+
+	const [senderCustom, setSenderCustom] = useSessionStorageState<{
+		custom?: { [key: string]: string };
+		template?: EditableTemplate;
+	}>(`${templateId}:sender-custom`, {});
+	const template = props.template ? { ...props.template, ...senderCustom.template } : null;
 	const { session } = useAuth();
-	const [editedTemplate, setEditedTemplate] = useState<EditableTemplate | null>(null);
+	const [editedTemplate, setEditedTemplate] = useState<EditableTemplate | null>(getInitialEditTemplate(template));
 	const mode = editedTemplate === null ? "send" : "edit";
 	const saveTemplate = useSaveTemplate(templateId, {
 		onSuccess: () => {
@@ -304,8 +344,8 @@ function Page() {
 	}, [template]);
 
 	useEffect(() => {
-		if (!selectedLegislator && myLegislators.data.length > 0) {
-			const legislator = myLegislators.data[0];
+		if (!selectedLegislator && myLegislators.isSuccess && myLegislators.data.legislators && myLegislators.data.legislators.length > 0) {
+			const legislator = myLegislators.data.legislators[0];
 			setSelectedLegislatorId(legislator.id);
 		}
 	}, [myLegislators, selectedLegislator, setSelectedLegislatorId]);
@@ -313,7 +353,7 @@ function Page() {
 	const renderedText = (
 		engine.parseAndRenderSync(template?.message ?? "", {
 			sender: {
-				...(senderProfile ?? createDefaultSenderProfile()),
+				...(senderProfileQuery.data ?? createDefaultSenderProfile()),
 				custom: senderCustom.custom,
 			},
 			legislator: selectedLegislator ?? createPlaceholderLegislator(),
@@ -324,6 +364,22 @@ function Page() {
 		.variableSegmentsSync(template?.message ?? "")
 		.filter((s) => s.length === 3 && s[0] === "sender" && s[1] === "custom")
 		.map((s) => s[2].toString());
+
+	const usedProperties = engine
+		.variableSegmentsSync(template?.message ?? "")
+		.filter((s) => s.length > 1 && s[0] === "sender" && s[1] !== "custom")
+		.map((s) => s.slice(1));
+
+	const missingProperties = usedProperties.filter((usedProp) => {
+		let value: any = senderProfileQuery.data;
+		for (let i = 0; i < usedProp.length; ++i) {
+			const key = usedProp[i].toString();
+			if (value && key in value) {
+				value = value[key];
+			}
+		}
+		return value === undefined || value === null || (typeof value === "string" && value.trim() === "");
+	});
 
 	const setCustomSenderProperty = useCallback(
 		(key: string, value: string) => {
@@ -340,109 +396,44 @@ function Page() {
 
 	return (
 		<div className="flex-1 flex flex-col">
-			<div className={cn("flex flex-col-reverse lg:flex-row flex-1 items-start", "gap-2")}>
+			<div className={cn("flex flex-col-reverse md:flex-row flex-1 items-start", "gap-2")}>
 				<div
 					id="content1"
 					className={cn(
-						"w-full border-t gap-x-2 self-stretch",
+						"w-full gap-x-2 self-stretch",
 						"fixed bottom-0 bg-background z-10 items-center grid grid-cols-[auto_1fr]",
-						"lg:w-72 lg:relative lg:bg-transparent lg:border-0 lg:grid-cols-1 lg:z-0 lg:items-start lg:flex lg:flex-col lg:border-r"
+						"md:w-72 md:relative md:bg-transparent md:border-0 md:grid-cols-1 md:z-0 md:items-start md:flex md:flex-col md:border-r"
 					)}
 				>
-					<div className="w-full p-1 px-3 grid-cols-subgrid grid col-span-2 items-center lg:block">
-						<label className="lg:text-2xl">Sender Profile</label>
-						<SenderProfileEditor
-							defaultSenderProfile={senderProfile}
-							onSubmit={(profile) => {
-								setSenderProfile(profile);
-								if (!profile) {
-									setSelectedLegislatorId(null);
-								}
-							}}
-						/>
-					</div>
-					<Separator orientation="horizontal" className="my-2 hidden lg:block" />
-					<div className="w-full px-3 grid-cols-subgrid grid col-span-2 items-center lg:block">
-						{myLegislators && (
-							<>
-								<label className="block lg:hidden">Legislator</label>
-								<div className="flex gap-1 items-center lg:hidden">
-									{myLegislators.isPending && (
-										<div>
-											<Loader2Icon className="animate-spin" />
-										</div>
-									)}
-									<Select value={selectedLegislatorId ?? ""} onValueChange={setSelectedLegislatorId}>
-										<SelectTrigger>{selectedLegislator?.name}</SelectTrigger>
-										<SelectContent>
-											{myLegislators.data.map((l) => (
-												<SelectItem key={l.id} value={l.id}>
-													<LegislatorButtonContent legislator={l} />
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-
-									<Dialog>
-										<DialogTrigger>
-											<Button variant="ghost" size="icon">
-												<InfoIcon />
-											</Button>
-										</DialogTrigger>
-										<DialogContent>
-											{selectedLegislator && (
-												<LegislatorDetails
-													legislator={selectedLegislator}
-													onActivity={(a) => sendActivity.mutate({ id: templateId, activity: a })}
-												/>
-											)}
-										</DialogContent>
-									</Dialog>
-								</div>
-								<div className="lg:flex gap-4 flex-col items-start hidden">
-									<div className="text-2xl">Your Legislators</div>
-									{myLegislators.data.length === 0 && (
-										<div className="flex flex-col gap-8">
-											<Skeleton className="h-16 w-[250px]" />
-											<Skeleton className="h-16 w-[250px]" />
-											<Skeleton className="h-16 w-[250px]" />
-										</div>
-									)}
-									{!myLegislators.isPending &&
-										myLegislators.data.map((l) => {
-											return (
-												<div
-													key={l.id}
-													className={cn(
-														"w-full border rounded-md cursor-pointer p-2",
-														{
-															"bg-blue-300 dark:bg-blue-950":
-																selectedLegislator?.fullData.id.bioguide === l.id,
-														},
-														{
-															"hover:bg-muted": selectedLegislator?.fullData.id.bioguide !== l.id,
-														}
-													)}
-													style={{ gridColumn: "1 / -1" }}
-													onClick={() => setSelectedLegislatorId(l.id)}
-												>
-													<LegislatorButtonContent legislator={l} />
-												</div>
-											);
-										})}
-								</div>
-							</>
-						)}
-					</div>
-					<Separator orientation="horizontal" className="my-2 hidden lg:block" />
-					{selectedLegislator && (
-						<div className="hidden lg:block px-3">
-							<LegislatorDetails
-								legislator={selectedLegislator}
-								onActivity={(a) => sendActivity.mutate({ id: templateId, activity: a })}
+					<div className="w-full px-3 col-span-2 items-center md:block">
+						<div className="flex gap-1 items-center md:hidden w-full">
+							<Sheet>
+								<SheetTrigger asChild>
+									<div className="w-full p-1 m-1 border border-border rounded-md">
+										{selectedLegislator && <LegislatorButtonContent legislator={selectedLegislator} />}
+									</div>
+								</SheetTrigger>
+								<SheetContent side="bottom">
+									<SheetHeader>
+										<SheetDescription>
+											<MyLegislatorsCard
+												selectedLegislator={selectedLegislator}
+												setSelectedLegislatorId={setSelectedLegislatorId}
+												templateId={templateId}
+											/>
+										</SheetDescription>
+									</SheetHeader>
+								</SheetContent>
+							</Sheet>
+						</div>
+						<div className="hidden md:block">
+							<MyLegislatorsCard
+								selectedLegislator={selectedLegislator}
+								setSelectedLegislatorId={setSelectedLegislatorId}
+								templateId={templateId}
 							/>
 						</div>
-					)}
+					</div>
 				</div>
 				<div className="flex flex-col gap-2 p-2 mb-28 flex-1">
 					{mode === "send" && (
@@ -564,19 +555,39 @@ function Page() {
 								<div className="whitespace-pre-wrap">{renderedText}</div>
 							</CopyArea>
 
-							{customSenderProperties.map((p) => (
-								<Card key={p}>
+							{customSenderProperties.length > 0 && (
+								<Card>
 									<CardHeader>
-										<CardTitle>{camelToSentence(p)}</CardTitle>
+										<CardTitle className="text-xl">Customize</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<Input
-											value={senderCustom.custom?.[p]}
-											onChange={(e) => setCustomSenderProperty(p, e.target.value ?? "")}
-										/>
+										{customSenderProperties.map((p) => (
+											<Fragment key={p}>
+												<Label htmlFor={`sender-custom-${p}`}>{camelToSentence(p)}</Label>
+												<Input
+													id={`sender-custom-${p}`}
+													value={senderCustom.custom?.[p]}
+													onChange={(e) => setCustomSenderProperty(p, e.target.value ?? "")}
+													className="mb-2 mt-1"
+												/>
+											</Fragment>
+										))}
 									</CardContent>
 								</Card>
-							))}
+							)}
+
+							{missingProperties.length > 0 && (
+								<Alert className="border-2 border-orange-500 dark:border-orange-900 dark:text-white">
+									<AlertDescription className="flex gap-1 items-center">
+										<AlertTriangleIcon />
+										<Label>
+											The following are used in this message but you have not provided:{" "}
+											{missingProperties.map((m) => m.join(".")).join(", ")}
+										</Label>
+									</AlertDescription>
+								</Alert>
+							)}
+
 							{selectedLegislator && (
 								<a
 									href={selectedLegislator.contactForm}
@@ -598,6 +609,7 @@ function Page() {
 									<AlertDescription className="flex gap-1 items-center">
 										<AlertTriangleIcon />
 										<Label>These changes are temporary and will be lost when you close your browser.</Label>
+										{JSON.stringify(session)}
 										{!session?.user && (
 											<>
 												<LoginFormDialog>
@@ -658,6 +670,7 @@ function Page() {
 												...senderCustom,
 												template: editedTemplate,
 											});
+											setEditedTemplate(null);
 										}
 									}}
 									pending={saveTemplate.isPending}
