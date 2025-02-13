@@ -129,6 +129,12 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form
 	const { signUp, signIn, error, mode, setMode, resetPassword, emailMessage } = useLogin();
 	const { handleSubmit, register } = useForm<LoginFormState>();
 
+	let pending = signIn.isPending;
+	if (mode === "signup") {
+		pending = signUp.isPending;
+	} else if (mode === "forgotPassword") {
+		pending = resetPassword.isPending;
+	}
 	function onSubmit(form: LoginFormState) {
 		if (mode === "signup") {
 			signUp.mutate({
@@ -174,24 +180,19 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form
 								<ReportIssueLink />
 							</div>
 						)}
-						<Button
-							type="submit"
-							className="w-full"
-							pending={mode === "signup" ? signUp.isPending : signIn.isPending}
-							tabIndex={3}
-						>
+						<Button type="submit" className="w-full" pending={pending} tabIndex={3}>
 							<span>{getButtonAction(mode)}</span>
 						</Button>
 					</div>
 					<div className="mt-4 text-center text-sm">
 						<span>{mode === "login" ? "Don't" : "Already"} have an account?</span>
 						{mode === "login" && (
-							<Button type="button" variant="link" onClick={() => setMode("signup")} pending={signUp.isPending} tabIndex={5}>
+							<Button type="button" variant="link" onClick={() => setMode("signup")} disabled={pending} tabIndex={5}>
 								Sign Up
 							</Button>
 						)}
 						{mode !== "login" && (
-							<Button type="button" variant="link" onClick={() => setMode("login")} pending={signIn.isPending} tabIndex={6}>
+							<Button type="button" variant="link" onClick={() => setMode("login")} disabled={pending} tabIndex={6}>
 								Login
 							</Button>
 						)}
