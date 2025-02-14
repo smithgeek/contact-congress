@@ -34,7 +34,7 @@ function sortLegislator(a: Legislator, b: Legislator) {
 	if (a.terms[a.terms.length - 1].type === "rep") {
 		return -1;
 	}
-	if (b.terms[a.terms.length - 1].type === "rep") {
+	if (b.terms[b.terms.length - 1].type === "rep") {
 		return 1;
 	}
 	if (a.terms[a.terms.length - 1].state_rank === "senior") {
