@@ -6,6 +6,7 @@ import { ReportIssueLink } from "@/components/ReportIssueLink";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { useTheme } from "@/components/ui/themeProvider";
+import { ContactMyCongressLogo } from "@/icons/ContactMyCongressLogo";
 import { GithubIcon } from "@/icons/GithubIcon";
 import { GithubIconWhite } from "@/icons/GithubIconWhite";
 import { supabase } from "@/lib/supabase";
@@ -13,7 +14,7 @@ import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
 import { axiosInstance } from "@kubb/swagger-client/client";
 import { useMutation } from "@tanstack/react-query";
-import { HomeIcon, LogOutIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
+import { LogOutIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
 
 axiosInstance.defaults.baseURL = `${location.origin}/api`;
 
@@ -56,7 +57,7 @@ function Navbar() {
 		<header className="px-2 flex gap-2 items-center h-14 sticky top-0 bg-background border-b z-50">
 			<Link to="/">
 				<Button variant="ghost" size="icon">
-					<HomeIcon />
+					<ContactMyCongressLogo className="size-8" />
 				</Button>
 			</Link>
 			<div className="flex-1"></div>

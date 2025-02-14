@@ -31,7 +31,7 @@ import { Legislator } from "@/types/legislature";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Liquid } from "liquidjs";
-import { ExternalLinkIcon, FlagIcon, PencilIcon, StarIcon, Trash2Icon } from "lucide-react";
+import { ExternalLinkIcon, FlagIcon, PencilIcon, PhoneIcon, StarIcon, Trash2Icon } from "lucide-react";
 import { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { uuidv7 } from "uuidv7";
@@ -737,16 +737,26 @@ function Page({
 							)}
 
 							{selectedLegislator && (
-								<a
-									href={selectedLegislator.contactForm}
-									target="_blank"
-									onClick={() => sendActivity.mutate({ id: templateId, activity: "email" })}
-								>
-									<Button className="flex gap-2">
-										Contact {selectedLegislator.name}
-										<ExternalLinkIcon />
-									</Button>
-								</a>
+								<div className="flex gap-2">
+									<a
+										href={selectedLegislator.contactForm}
+										target="_blank"
+										onClick={() => sendActivity.mutate({ id: templateId, activity: "email" })}
+									>
+										<Button className="flex gap-2">
+											Contact
+											<ExternalLinkIcon className="size-5" />
+										</Button>
+									</a>
+									<a
+										href={`tel:${selectedLegislator.currentTerm.phone ?? ""}`}
+										onClick={() => sendActivity.mutate({ id: templateId, activity: "call" })}
+									>
+										<Button size="icon">
+											<PhoneIcon className="size-5" />
+										</Button>
+									</a>
+								</div>
 							)}
 						</>
 					)}
