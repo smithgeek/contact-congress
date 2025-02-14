@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Tables } from "@/generated/database.types";
 import { queryKeys } from "@/lib/queryKeys";
+import { stateAbbreviations } from "@/lib/stateAbbreviations";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
 import { useCopyToClipboard } from "@/lib/useCopyToClipboard";
@@ -52,6 +53,35 @@ export const Route = createFileRoute("/messages/$templateId")({
 	component: PageWrapper,
 	validateSearch: templatePageSearchSchema,
 });
+
+interface FormData {
+	user: {
+		name: {
+			full: string;
+			first: string;
+			last: string;
+		};
+		address: {
+			street: string;
+			city: string;
+			stateAbbreviation: string;
+			state: string;
+			zip: string;
+		};
+		phone: string;
+		email: string;
+	};
+	template: {
+		subject: string;
+		message: string;
+		title: string;
+		validOrigin: string;
+	};
+}
+
+function saveToExtension(formData: FormData) {
+	window.postMessage({ type: "congress-form-data", formData });
+}
 
 function createDefaultSenderProfile(): SenderProfile {
 	return {
@@ -356,7 +386,7 @@ function ClearCustomizationsDialog({ onClear }: { onClear: () => void }) {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger>
+			<DialogTrigger asChild>
 				<Button variant="ghost" size="icon">
 					<Trash2Icon />
 				</Button>
@@ -393,7 +423,7 @@ function DeleteMessageDialog({ onDelete, access }: { onDelete: () => void; acces
 	const [open, setOpen] = useState(false);
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger>
+			<DialogTrigger asChild>
 				<Button variant="ghost" size="icon">
 					<Trash2Icon />
 				</Button>
@@ -621,7 +651,7 @@ function Page({
 										onClick={() => sendActivity.mutate({ id: templateId, activity: "share" })}
 									/>
 									<Dialog>
-										<DialogTrigger>
+										<DialogTrigger asChild>
 											<Button variant="ghost">
 												<FlagIcon className="text-red-500 fill-red-500 opacity-90" />
 											</Button>
@@ -760,7 +790,35 @@ function Page({
 									<a
 										href={selectedLegislator.contactForm}
 										target="_blank"
-										onClick={() => sendActivity.mutate({ id: templateId, activity: "email" })}
+										onClick={() => {
+											saveToExtension({
+												user: {
+													address: {
+														street: senderProfileQuery.data?.address?.street ?? "",
+														city: senderProfileQuery.data?.address?.city ?? "",
+														stateAbbreviation: senderProfileQuery.data?.district?.stateAbbreviation ?? "",
+														state: stateAbbreviations[
+															senderProfileQuery.data?.district?.stateAbbreviation ?? ""
+														],
+														zip: senderProfileQuery.data?.address?.zip ?? "",
+													},
+													email: senderProfileQuery.data?.email ?? "",
+													phone: senderProfileQuery.data?.phoneNumber ?? "",
+													name: {
+														full: senderProfileQuery.data?.name ?? "",
+														first: senderProfileQuery.data?.name?.split(" ")[0] ?? "",
+														last: senderProfileQuery.data?.name?.split(" ").slice(1).join(" ") ?? "",
+													},
+												},
+												template: {
+													subject: template?.subject ?? "",
+													message: renderedText,
+													title: template?.title ?? "Unnamed Message",
+													validOrigin: new URL(selectedLegislator.website).origin,
+												},
+											});
+											sendActivity.mutate({ id: templateId, activity: "email" });
+										}}
 									>
 										<Button className="flex gap-2">
 											Contact
@@ -850,7 +908,7 @@ function Page({
 									We reserve the right to remove messages that discriminate or contain offensive content.
 								</Label>
 								<Dialog>
-									<DialogTrigger>
+									<DialogTrigger asChild>
 										<Button variant="link">Learn More</Button>
 									</DialogTrigger>
 									<DialogContent>
