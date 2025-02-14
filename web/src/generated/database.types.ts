@@ -78,6 +78,7 @@ export type Database = {
       }
       templates: {
         Row: {
+          access: Database["public"]["Enums"]["template_access"]
           author_id: string | null
           created_at: string
           favorites: number
@@ -89,6 +90,7 @@ export type Database = {
           templates_search: string | null
         }
         Insert: {
+          access?: Database["public"]["Enums"]["template_access"]
           author_id?: string | null
           created_at?: string
           favorites?: number
@@ -99,6 +101,7 @@ export type Database = {
           title: string
         }
         Update: {
+          access?: Database["public"]["Enums"]["template_access"]
           author_id?: string | null
           created_at?: string
           favorites?: number
@@ -130,6 +133,7 @@ export type Database = {
       }
     }
     Enums: {
+      template_access: "public" | "private"
       template_activity_id: "favorite" | "email" | "call" | "share" | "flag"
     }
     CompositeTypes: {

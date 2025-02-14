@@ -10,6 +10,7 @@ import { ReactNode } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ReportIssueLink } from "./ReportIssueLink";
+import { CardHeader, CardTitle } from "./ui/card";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 
 type DisplayModes = "login" | "signup" | "checkEmail" | "authenticated" | "forgotPassword";
@@ -83,7 +84,7 @@ interface LoginFormState {
 	password: string;
 }
 
-export function LoginFormDialog({ children }: { children: ReactNode }) {
+export function LoginFormDialog({ children }: { children?: ReactNode }) {
 	const [open, setOpen] = useState(false);
 	const { session } = useAuth();
 
@@ -94,9 +95,15 @@ export function LoginFormDialog({ children }: { children: ReactNode }) {
 	}, [session?.user]);
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>{children}</DialogTrigger>
+			<DialogTrigger asChild>
+				{children ?? (
+					<Button variant={"link"} className="m-0 p-0">
+						Log in
+					</Button>
+				)}
+			</DialogTrigger>
 			<DialogContent>
-				<LoginForm />
+				<LoginForm titleType="dialog" />
 			</DialogContent>
 		</Dialog>
 	);
@@ -125,7 +132,7 @@ function getButtonAction(mode: DisplayModes) {
 	return "Login";
 }
 
-function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
+export function LoginForm({ className, titleType, ...props }: React.ComponentPropsWithoutRef<"form"> & { titleType?: "dialog" | "card" }) {
 	const { signUp, signIn, error, mode, setMode, resetPassword, emailMessage } = useLogin();
 	const { handleSubmit, register } = useForm<LoginFormState>();
 
@@ -152,7 +159,13 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form
 	}
 	return (
 		<>
-			<DialogTitle className="text-2xl">{getTitle(mode)}</DialogTitle>
+			{titleType === "dialog" && <DialogTitle className="text-2xl">{getTitle(mode)}</DialogTitle>}
+			{titleType === "card" && (
+				<CardHeader>
+					<CardTitle className="text-2xl">{getTitle(mode)}</CardTitle>
+				</CardHeader>
+			)}
+			{titleType === undefined && <div className="text-2xl">{getTitle(mode)}</div>}
 			{mode === "checkEmail" && <Label>{emailMessage}</Label>}
 			{mode !== "checkEmail" && (
 				<form onSubmit={handleSubmit(onSubmit)} {...props}>

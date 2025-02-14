@@ -96,18 +96,20 @@ function MyMessagesCard() {
 			<CardHeader className="flex flex-row justify-between">
 				<h2 className="text-2xl">My Messages</h2>
 				<Authenticated>
-					<Button
-						onClick={() => {
-							navigate({
-								to: "/messages/$templateId",
-								params: {
-									templateId: uuidv7(),
-								},
-							});
-						}}
-					>
-						Create
-					</Button>
+					<Link to="/messages/$templateId" params={{ templateId: uuidv7() }} search={{ new: true }}>
+						<Button
+							onClick={() => {
+								navigate({
+									to: "/messages/$templateId",
+									params: {
+										templateId: uuidv7(),
+									},
+								});
+							}}
+						>
+							Create
+						</Button>
+					</Link>
 				</Authenticated>
 			</CardHeader>
 			<CardContent>

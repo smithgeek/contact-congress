@@ -1,18 +1,19 @@
+import { AlertBanner } from "@/components/AlertBanner";
 import { DistrictLabel } from "@/components/DistrictLabel";
 import { LegislatorImage } from "@/components/LegislatorImage";
 import { LegislatorTypeLabel } from "@/components/LegislatorTypeLabel";
-import { LoginFormDialog } from "@/components/login-form";
+import { LoginForm, LoginFormDialog } from "@/components/login-form";
 import { MonacoEditor } from "@/components/MonacoEditor";
 import { PartyLabel } from "@/components/PartyLabel";
 import { PrivateInfoLabel } from "@/components/PrivateInfoLabel";
 import { SenderProfileForm } from "@/components/SenderProfileForm";
 import { ShareButton } from "@/components/ShareButton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Tables } from "@/generated/database.types";
@@ -28,17 +29,28 @@ import { useSessionStorageState } from "@/lib/useSessionStorageState";
 import { cn } from "@/lib/utils";
 import { Legislator } from "@/types/legislature";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Liquid } from "liquidjs";
-import { AlertTriangleIcon, ExternalLinkIcon, FlagIcon, PencilIcon, StarIcon } from "lucide-react";
+import { ExternalLinkIcon, FlagIcon, PencilIcon, StarIcon, Trash2Icon } from "lucide-react";
 import { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { uuidv7 } from "uuidv7";
+import { z } from "zod";
 
 const engine = new Liquid({});
 
+const templatePageSearchSchema = z.object({
+	title: z.string().optional().catch(undefined),
+	subject: z.string().optional().catch(undefined),
+	message: z.string().optional().catch(undefined),
+	new: z.boolean().optional().catch(false),
+});
+
+type TemplateSearch = z.infer<typeof templatePageSearchSchema>;
+
 export const Route = createFileRoute("/messages/$templateId")({
 	component: PageWrapper,
+	validateSearch: templatePageSearchSchema,
 });
 
 function createDefaultSenderProfile(): SenderProfile {
@@ -174,6 +186,7 @@ interface EditableTemplate {
 	title: string;
 	message: string;
 	subject: string;
+	access: "public" | "private";
 }
 
 function useSaveTemplate(templateId: string, options?: { onSuccess?: () => void }) {
@@ -189,6 +202,7 @@ function useSaveTemplate(templateId: string, options?: { onSuccess?: () => void 
 					title: template.title,
 					author_id: session?.user.id,
 					id: templateId,
+					access: template.access,
 				})
 				.select();
 			return result.data?.[0];
@@ -286,64 +300,190 @@ function MyLegislatorsCard({
 	);
 }
 
-function getInitialEditTemplate(template: Tables<"templates"> | null) {
-	if (template === null) {
-		const queryParams = new URLSearchParams(location.search);
+function getInitialEditTemplate(template: Tables<"templates"> | null, searchParams: TemplateSearch) {
+	if (template === null && searchParams.new) {
 		return {
-			message: queryParams.get("message") ?? messagePlaceholder,
-			subject: queryParams.get("subject") ?? "",
-			title: queryParams.get("title") ?? "",
-		};
+			message: searchParams.message ?? messagePlaceholder,
+			subject: searchParams.subject ?? "",
+			title: searchParams.title ?? "",
+			access: "private",
+		} as const;
 	}
 	return null;
 }
 
 function PageWrapper() {
 	const { templateId } = Route.useParams();
+	const searchParams = Route.useSearch();
 	const templateQuery = useTemplate(templateId);
+	const { session } = useAuth();
 	if (templateQuery.isPending) {
 		return null;
 	}
-	return <Page template={templateQuery.data ?? null} />;
+	if (templateQuery.data === null && !searchParams.new) {
+		return (
+			<div className="flex justify-center items-center flex-1">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-2xl">Not Found</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-col items-center gap-2">
+						<div>This message could not be found. It may be private or have been deleted.</div>
+						<Link to="/">
+							<Button>Find Other Messages</Button>
+						</Link>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+	if (!session?.user && searchParams.new) {
+		return (
+			<div className="flex justify-center items-center flex-1">
+				<Card>
+					<CardContent>
+						<LoginForm titleType="card" />
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+	return <Page template={templateQuery.data ?? null} templateId={templateId} searchParams={searchParams} />;
 }
 
-function Page(props: { template: Tables<"templates"> | null }) {
+function ClearCustomizationsDialog({ onClear }: { onClear: () => void }) {
+	const [open, setOpen] = useState(false);
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger>
+				<Button variant="ghost" size="icon">
+					<Trash2Icon />
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle className="text-2xl">Clear Customizations?</DialogTitle>
+				</DialogHeader>
+				<p>This will clear all of your customizations</p>
+				<DialogFooter>
+					<Button
+						theme="danger"
+						onClick={() => {
+							onClear();
+							setOpen(false);
+						}}
+					>
+						Clear
+					</Button>
+					<Button
+						onClick={() => {
+							setOpen(false);
+						}}
+					>
+						Cancel
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function DeleteMessageDialog({ onDelete, access }: { onDelete: () => void; access: "public" | "private" }) {
+	const [open, setOpen] = useState(false);
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger>
+				<Button variant="ghost" size="icon">
+					<Trash2Icon />
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle className="text-2xl">Delete Message?</DialogTitle>
+				</DialogHeader>
+				<p>
+					<span>This will permanently delete this message</span>
+					{access === "public" && <span>, anyone with a link to this message will no longer be able to see it</span>}
+					<span>.</span>
+				</p>
+				<DialogFooter>
+					<Button
+						theme="danger"
+						onClick={() => {
+							onDelete();
+							setOpen(false);
+						}}
+					>
+						Delete
+					</Button>
+					<Button
+						onClick={() => {
+							setOpen(false);
+						}}
+					>
+						Cancel
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function useDeleteTemplate() {
+	const navigate = useNavigate();
+	return useMutation({
+		mutationFn: async ({ id }: { id: string }) => {
+			const { error } = await supabase.from("templates").delete().eq("id", id);
+			if (error) {
+				toast.error(error.message);
+			} else {
+				toast.success("Message deleted");
+				navigate({ to: "/" });
+			}
+		},
+	});
+}
+
+function Page({
+	templateId,
+	searchParams,
+	...props
+}: {
+	template: Tables<"templates"> | null;
+	templateId: string;
+	searchParams: TemplateSearch;
+}) {
 	const myLegislators = useMyLegislators();
 	const [selectedLegislatorId, setSelectedLegislatorId] = useState<string | null>(null);
 	const selectedLegislator = myLegislators.data?.legislators?.find((l) => l.id === selectedLegislatorId);
 	const senderProfileQuery = useSenderProfile();
-	const { templateId } = Route.useParams();
 
-	const [senderCustom, setSenderCustom] = useSessionStorageState<{
-		custom?: { [key: string]: string };
-		template?: EditableTemplate;
-	}>(`${templateId}:sender-custom`, {});
-	const template = props.template ? { ...props.template, ...senderCustom.template } : null;
+	const [senderCustom, setSenderCustom] = useSessionStorageState<
+		| {
+				custom?: { [key: string]: string };
+				template?: Partial<EditableTemplate>;
+		  }
+		| undefined
+	>(`${templateId}:sender-custom`, undefined);
+	const template = props.template ? { ...props.template, ...senderCustom?.template } : null;
 	const { session } = useAuth();
-	const [editedTemplate, setEditedTemplate] = useState<EditableTemplate | null>(getInitialEditTemplate(template));
+	const [editedTemplate, setEditedTemplate] = useState<EditableTemplate | null>(getInitialEditTemplate(template, searchParams));
 	const mode = editedTemplate === null ? "send" : "edit";
+	const navigate = useNavigate();
 	const saveTemplate = useSaveTemplate(templateId, {
 		onSuccess: () => {
 			setEditedTemplate(null);
+			if (searchParams.new) {
+				navigate({ to: "/messages/$templateId", params: { templateId } });
+			}
 		},
 	});
 	const { favorites, addFavorite, removeFavorite } = useFavorites();
 	const isFavorite = favorites?.includes(templateId) ?? false;
 	const sendActivity = useSendActivity();
 	const flagTemplate = useFlagTemplate();
-
+	const deleteTemplate = useDeleteTemplate();
 	const userIsAuthor = session?.user.id === template?.author_id || (!template && session?.user.id);
-
-	useEffect(() => {
-		if (template === null) {
-			const queryParams = new URLSearchParams(location.search);
-			setEditedTemplate({
-				message: queryParams.get("message") ?? messagePlaceholder,
-				subject: queryParams.get("subject") ?? "",
-				title: queryParams.get("title") ?? "",
-			});
-		}
-	}, [template]);
 
 	useEffect(() => {
 		if (!selectedLegislator && myLegislators.isSuccess && myLegislators.data.legislators && myLegislators.data.legislators.length > 0) {
@@ -356,7 +496,7 @@ function Page(props: { template: Tables<"templates"> | null }) {
 		engine.parseAndRenderSync(template?.message ?? "", {
 			sender: {
 				...(senderProfileQuery.data ?? createDefaultSenderProfile()),
-				custom: senderCustom.custom,
+				custom: senderCustom?.custom,
 			},
 			legislator: selectedLegislator ?? createPlaceholderLegislator(),
 		}) as string
@@ -388,7 +528,7 @@ function Page(props: { template: Tables<"templates"> | null }) {
 			setSenderCustom({
 				...senderCustom,
 				custom: {
-					...senderCustom.custom,
+					...senderCustom?.custom,
 					[key]: value,
 				},
 			});
@@ -487,12 +627,21 @@ function Page(props: { template: Tables<"templates"> | null }) {
 										</DialogContent>
 									</Dialog>
 								</div>
+
+								{userIsAuthor && (
+									<DeleteMessageDialog
+										onDelete={() => deleteTemplate.mutate({ id: templateId })}
+										access={template?.access ?? "private"}
+									/>
+								)}
+								{!userIsAuthor && senderCustom && <ClearCustomizationsDialog onClear={() => setSenderCustom(undefined)} />}
 								<Button
 									onClick={() =>
 										setEditedTemplate({
 											title: template?.title ?? "",
 											message: template?.message ?? "",
 											subject: template?.subject ?? "",
+											access: template?.access ?? "private",
 										})
 									}
 									variant="ghost"
@@ -568,7 +717,7 @@ function Page(props: { template: Tables<"templates"> | null }) {
 												<Label htmlFor={`sender-custom-${p}`}>{camelToSentence(p)}</Label>
 												<Input
 													id={`sender-custom-${p}`}
-													value={senderCustom.custom?.[p]}
+													value={senderCustom?.custom?.[p] ?? ""}
 													onChange={(e) => setCustomSenderProperty(p, e.target.value ?? "")}
 													className="mb-2 mt-1"
 												/>
@@ -579,15 +728,12 @@ function Page(props: { template: Tables<"templates"> | null }) {
 							)}
 
 							{missingProperties.length > 0 && (
-								<Alert className="border-2 border-orange-500 dark:border-orange-900 dark:text-white">
-									<AlertDescription className="flex gap-1 items-center">
-										<AlertTriangleIcon />
-										<Label>
-											The following are used in this message but you have not provided:{" "}
-											{missingProperties.map((m) => m.join(".")).join(", ")}
-										</Label>
-									</AlertDescription>
-								</Alert>
+								<AlertBanner>
+									<Label>
+										The following are used in this message but you have not provided:{" "}
+										{missingProperties.map((m) => m.join(".")).join(", ")}
+									</Label>
+								</AlertBanner>
 							)}
 
 							{selectedLegislator && (
@@ -607,39 +753,68 @@ function Page(props: { template: Tables<"templates"> | null }) {
 					{editedTemplate && (
 						<>
 							{!userIsAuthor && (
-								<Alert className="border-2 border-orange-500 dark:border-orange-900 dark:text-white">
-									<AlertDescription className="flex gap-1 items-center">
-										<AlertTriangleIcon />
-										<Label>These changes are temporary and will be lost when you close your browser.</Label>
-										{JSON.stringify(session)}
-										{!session?.user && (
-											<>
-												<LoginFormDialog>
-													<Button variant={"link"} className="m-0 p-0">
-														Log in
-													</Button>
-												</LoginFormDialog>
-												<Label>to save your own messages.</Label>
-											</>
+								<AlertBanner>
+									<Label>These changes are temporary and will be lost when you close your browser.</Label>
+									{!session?.user && (
+										<>
+											<LoginFormDialog>
+												<Button variant={"link"} className="m-0 p-0">
+													Log in
+												</Button>
+											</LoginFormDialog>
+											<Label>to save your own messages.</Label>
+										</>
+									)}
+									{session?.user && (
+										<Label className="flex gap-1 items-center">
+											<Link
+												to="/messages/$templateId"
+												params={{ templateId: uuidv7() }}
+												search={{
+													title: editedTemplate.title,
+													subject: editedTemplate.subject,
+													message: editedTemplate.message,
+													new: true,
+												}}
+											>
+												<Button className="m-0 p-0" variant="link">
+													Create
+												</Button>
+											</Link>
+											<span>your own message to save it.</span>
+										</Label>
+									)}
+								</AlertBanner>
+							)}
+
+							{userIsAuthor && (
+								<Card>
+									<CardHeader>
+										<CardTitle>Access</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<RadioGroup
+											defaultValue={template?.access ?? "private"}
+											onValueChange={(e) =>
+												setEditedTemplate({ ...editedTemplate, access: e as "public" | "private" })
+											}
+										>
+											<div className="flex items-center space-x-2">
+												<RadioGroupItem value="private" id="view-private" />
+												<Label htmlFor="view-private">Private</Label>
+											</div>
+											<div className="flex items-center space-x-2">
+												<RadioGroupItem value="public" id="view-public" />
+												<Label htmlFor="view-public">Public (Share with others)</Label>
+											</div>
+										</RadioGroup>
+										{template?.access === "public" && editedTemplate.access === "private" && (
+											<AlertBanner className="mt-2">
+												<Label>Anyone with this link will no longer be able to view this message.</Label>
+											</AlertBanner>
 										)}
-										{session?.user && (
-											<Label className="flex gap-1 items-center">
-												<a
-													href={`/messages/${uuidv7()}?title=${encodeURIComponent(
-														editedTemplate.title
-													)}&subject=${encodeURIComponent(editedTemplate.subject)}&message=${encodeURIComponent(
-														editedTemplate.message
-													)}`}
-												>
-													<Button className="m-0 p-0" variant="link">
-														Create
-													</Button>
-												</a>
-												<span>your own message to save it.</span>
-											</Label>
-										)}
-									</AlertDescription>
-								</Alert>
+									</CardContent>
+								</Card>
 							)}
 							<div className="flex gap-1 items-center">
 								<Label className="text-muted-foreground">
@@ -668,9 +843,14 @@ function Page(props: { template: Tables<"templates"> | null }) {
 										if (userIsAuthor) {
 											saveTemplate.mutate(editedTemplate);
 										} else {
-											setSenderCustom({
-												...senderCustom,
-												template: editedTemplate,
+											setSenderCustom(() => {
+												const result = {
+													...senderCustom,
+													template: template
+														? getChangedProperties(editedTemplate, props.template ?? {})
+														: undefined,
+												};
+												return Object.values(result).filter((v) => v !== undefined).length > 0 ? result : undefined;
 											});
 											setEditedTemplate(null);
 										}
@@ -689,4 +869,14 @@ function Page(props: { template: Tables<"templates"> | null }) {
 			</div>
 		</div>
 	);
+}
+
+function getChangedProperties<U extends object, T extends { [key: string]: unknown }>(current: U, original: T): Partial<U> | undefined {
+	const filteredEntries = Object.entries(current).filter(([key, value]) => {
+		return value !== original[key];
+	});
+	if (filteredEntries.length === 0) {
+		return undefined;
+	}
+	return Object.fromEntries(filteredEntries) as Partial<U>;
 }

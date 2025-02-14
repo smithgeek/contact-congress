@@ -55,7 +55,7 @@ function Navbar() {
 	return (
 		<header className="px-2 flex gap-2 items-center h-14 sticky top-0 bg-background border-b z-50">
 			<Link to="/">
-				<Button variant="ghost">
+				<Button variant="ghost" size="icon">
 					<HomeIcon />
 				</Button>
 			</Link>
@@ -63,7 +63,7 @@ function Navbar() {
 			<ThemeButton />
 			<Authenticated>
 				<Link to="/account">
-					<Button variant="ghost">
+					<Button variant="ghost" size="icon">
 						<User2Icon />
 					</Button>
 				</Link>

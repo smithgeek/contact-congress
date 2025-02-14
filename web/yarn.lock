@@ -1867,6 +1867,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-radio-group@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "@radix-ui/react-radio-group@npm:1.2.3"
+  dependencies:
+    "@radix-ui/primitive": "npm:1.1.1"
+    "@radix-ui/react-compose-refs": "npm:1.1.1"
+    "@radix-ui/react-context": "npm:1.1.1"
+    "@radix-ui/react-direction": "npm:1.1.0"
+    "@radix-ui/react-presence": "npm:1.1.2"
+    "@radix-ui/react-primitive": "npm:2.0.2"
+    "@radix-ui/react-roving-focus": "npm:1.1.2"
+    "@radix-ui/react-use-controllable-state": "npm:1.1.0"
+    "@radix-ui/react-use-previous": "npm:1.1.0"
+    "@radix-ui/react-use-size": "npm:1.1.0"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10/3a484992668227bee29dddeacd9c7a71dd80df66d082ee124f829608b38921254e67490ddf54ce614b1d1b9061e1cde8d8cfca0e6ad9600ee67f989e530b60d0
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-roving-focus@npm:1.1.2":
   version: 1.1.2
   resolution: "@radix-ui/react-roving-focus@npm:1.1.2"
@@ -3712,6 +3740,7 @@ __metadata:
     "@radix-ui/react-dropdown-menu": "npm:^2.1.6"
     "@radix-ui/react-hover-card": "npm:^1.1.6"
     "@radix-ui/react-label": "npm:^2.1.2"
+    "@radix-ui/react-radio-group": "npm:^1.2.3"
     "@radix-ui/react-select": "npm:^2.1.6"
     "@radix-ui/react-separator": "npm:^1.1.2"
     "@radix-ui/react-slot": "npm:^1.1.2"
@@ -3756,6 +3785,7 @@ __metadata:
     vite: "npm:^5.4.10"
     vite-plugin-checker: "npm:^0.8.0"
     vite-plugin-html: "npm:^3.2.2"
+    zod: "npm:^3.24.2"
   languageName: unknown
   linkType: soft
 
@@ -8236,5 +8266,12 @@ __metadata:
   version: 3.23.8
   resolution: "zod@npm:3.23.8"
   checksum: 10/846fd73e1af0def79c19d510ea9e4a795544a67d5b34b7e1c4d0425bf6bfd1c719446d94cdfa1721c1987d891321d61f779e8236fde517dc0e524aa851a6eff1
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.24.2":
+  version: 3.24.2
+  resolution: "zod@npm:3.24.2"
+  checksum: 10/604c62a8cf8e330d78b106a557f4b44f5d14845d20b1360a423ccc09b58cb8525ccf7e4b40cf1bd4852d22393d2c67774b5817ec5a2fedab25f543b36ed15943
   languageName: node
   linkType: hard

@@ -13,7 +13,7 @@ export function useSessionStorageState<T>(key: string, initialValue: T) {
 
 	useEffect(() => {
 		try {
-			if (storedValue === initialValue) {
+			if (storedValue === initialValue || storedValue === undefined) {
 				window.sessionStorage.removeItem(key);
 			} else {
 				window.sessionStorage.setItem(key, JSON.stringify(storedValue));
