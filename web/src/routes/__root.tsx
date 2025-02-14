@@ -4,6 +4,7 @@ import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 // components
 import { ReportIssueLink } from "@/components/ReportIssueLink";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Toaster } from "@/components/ui/sonner";
 import { useTheme } from "@/components/ui/themeProvider";
 import { ContactMyCongressLogo } from "@/icons/ContactMyCongressLogo";
@@ -14,7 +15,7 @@ import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
 import { axiosInstance } from "@kubb/swagger-client/client";
 import { useMutation } from "@tanstack/react-query";
-import { LogOutIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
+import { LogOutIcon, MenuIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
 
 axiosInstance.defaults.baseURL = `${location.origin}/api`;
 
@@ -55,22 +56,36 @@ function Navbar() {
 
 	return (
 		<header className="px-2 flex gap-2 items-center h-14 sticky top-0 bg-background border-b z-50">
-			<Link to="/">
-				<Button variant="ghost" size="icon">
-					<ContactMyCongressLogo className="size-8" />
-				</Button>
+			<Link to="/" className="flex items-center gap-2">
+				<ContactMyCongressLogo className="size-8" />
+				<div className="text-lg sm:text-2xl font-bold">
+					<span className="text-[#dc444b]">Contact</span>
+					<span className="text-muted-foreground dark:text-white">My</span>
+					<span className="text-[#365ee0]">Congress</span>
+					<span className="text-muted-foreground">.com</span>
+				</div>
 			</Link>
 			<div className="flex-1"></div>
 			<ThemeButton />
 			<Authenticated>
-				<Link to="/account">
-					<Button variant="ghost" size="icon">
-						<User2Icon />
-					</Button>
-				</Link>
-				<Button onClick={() => signOut.mutate()} pending={signOut.isPending} variant="ghost" size="icon">
-					<LogOutIcon />
-				</Button>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" size="icon">
+							<MenuIcon />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent className="w-56">
+						<Link to="/account">
+							<DropdownMenuItem>
+								<User2Icon />
+								My Account
+							</DropdownMenuItem>
+						</Link>
+						<DropdownMenuItem onClick={() => signOut.mutate()}>
+							<LogOutIcon /> Log out
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</Authenticated>
 		</header>
 	);
