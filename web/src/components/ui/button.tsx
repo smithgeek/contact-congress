@@ -21,6 +21,7 @@ const variantConfig = {
 				outline: "border bg-transparent",
 				ghost: "",
 				link: "underline-offset-4 hover:underline",
+				inlineLink: "underline-offset-4 hover:underline text-md",
 			},
 			size: {
 				default: "h-10 px-4 py-2",
@@ -48,6 +49,7 @@ const variantConfig = {
 				outline: "bg-transparent",
 				ghost: "bg-black/[.6]",
 				link: "bg-transparent",
+				inlineLink: "bg-transparent",
 			},
 		},
 		defaultVariants: {
@@ -167,6 +169,53 @@ const buttonVariants = cva(
 				variant: "link",
 				theme: "secondary",
 				className: "text-foreground decoration-secondary hover:text-secondary",
+			},
+
+			{
+				variant: "inlineLink",
+				theme: "default",
+				className: "text-primary decoration-primary hover:text-primary",
+			},
+			{
+				variant: "inlineLink",
+				theme: "success",
+				className: "text-foreground decoration-success hover:text-success",
+			},
+			{
+				variant: "inlineLink",
+				theme: "warning",
+				class: "text-foreground decoration-warning hover:text-warning",
+			},
+			{
+				variant: "inlineLink",
+				theme: "danger",
+				className: "text-foreground decoration-danger hover:text-danger",
+			},
+			{
+				variant: "inlineLink",
+				theme: "secondary",
+				className: "text-foreground decoration-secondary hover:text-secondary",
+			},
+
+			{
+				variant: "inlineLink",
+				size: "default",
+				className: "px-1 py-0 h-min",
+			},
+			{
+				variant: "inlineLink",
+				size: "lg",
+				className: "px-1 py-0 h-min",
+			},
+			{
+				variant: "inlineLink",
+				size: "sm",
+				className: "px-1 py-0 h-min",
+			},
+			{
+				variant: "inlineLink",
+				size: "xs",
+				className: "px-1 py-0 h-min",
 			},
 		],
 	}

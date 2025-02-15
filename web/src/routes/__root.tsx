@@ -13,11 +13,8 @@ import { GithubIconWhite } from "@/icons/GithubIconWhite";
 import { supabase } from "@/lib/supabase";
 import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
-import { axiosInstance } from "@kubb/swagger-client/client";
 import { useMutation } from "@tanstack/react-query";
 import { LogOutIcon, MenuIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
-
-axiosInstance.defaults.baseURL = `${location.origin}/api`;
 
 function PageContent() {
 	return (

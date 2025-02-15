@@ -332,12 +332,12 @@ function MyLegislatorsCard() {
 												</Button>
 											</a>
 										</div>
-										<a href={l.contactForm} target="_blank">
+										<a href={l.contactForm} target="_blank" rel="noreferrer">
 											<Button size="icon" className="justify-self-center">
 												<MailIcon />
 											</Button>
 										</a>
-										<a href={l.website} target="_blank">
+										<a href={l.website} target="_blank" rel="noreferrer">
 											<Button size="icon" className="justify-self-center lg:justify-self-start">
 												<GlobeIcon />
 											</Button>
