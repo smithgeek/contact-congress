@@ -285,7 +285,7 @@ function MyLegislatorsCard({
 						</div>
 					</>
 				)}
-				{mode === "edit" && <SenderProfileForm onSubmit={() => setMode("view")} onCancel={() => setMode("view")} />}
+				{mode === "edit" && <SenderProfileForm onSubmit={() => setMode("view")} onCancel={() => setMode("view")} mode="address" />}
 			</div>
 			<Separator orientation="horizontal" className="my-2" />
 			{selectedLegislator && (
@@ -353,6 +353,7 @@ function PageWrapper() {
 
 function ClearCustomizationsDialog({ onClear }: { onClear: () => void }) {
 	const [open, setOpen] = useState(false);
+
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger>
@@ -442,6 +443,22 @@ function useDeleteTemplate() {
 			}
 		},
 	});
+}
+
+function FixSenderProfileDialog() {
+	const [open, setOpen] = useState(false);
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button size="sm" className="ml-2">
+					FIX
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<SenderProfileForm mode="full" onSubmit={() => setOpen(false)} onCancel={() => setOpen(false)} />
+			</DialogContent>
+		</Dialog>
+	);
 }
 
 function Page({
@@ -650,6 +667,17 @@ function Page({
 									<PencilIcon />
 								</Button>
 							</div>
+							{missingProperties.length > 0 && (
+								<AlertBanner>
+									<Label>
+										<span>
+											The following {missingProperties.length > 1 ? "are" : "is"} missing, but used in this message:{" "}
+										</span>
+										{missingProperties.map((m) => m.join(".")).join(", ")}
+										<FixSenderProfileDialog />
+									</Label>
+								</AlertBanner>
+							)}
 							<h1 className="text-3xl">{template?.title}</h1>
 						</>
 					)}
@@ -725,15 +753,6 @@ function Page({
 										))}
 									</CardContent>
 								</Card>
-							)}
-
-							{missingProperties.length > 0 && (
-								<AlertBanner>
-									<Label>
-										The following are used in this message but you have not provided:{" "}
-										{missingProperties.map((m) => m.join(".")).join(", ")}
-									</Label>
-								</AlertBanner>
 							)}
 
 							{selectedLegislator && (

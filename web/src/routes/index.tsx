@@ -263,7 +263,7 @@ function WelcomeCard() {
 			<CardContent className="flex gap-4">
 				<div>
 					<form onSubmit={handleSubmit(({ query }) => setQuery(query))} className="flex gap-2 items-center">
-						<Input placeholder="Search for topics" className="max-w-80 w-80" {...register("query")} />
+						<Input placeholder="Search for topics" className="max-w-[60vw] w-80" {...register("query")} />
 						<Button type="submit" size="icon" pending={searchResults.isPending}>
 							<SearchIcon />
 						</Button>
@@ -335,7 +335,7 @@ function MyLegislatorsCard() {
 						</div>
 					</>
 				)}
-				{mode === "edit" && <SenderProfileForm onSubmit={() => setMode("view")} onCancel={() => setMode("view")} />}
+				{mode === "edit" && <SenderProfileForm onSubmit={() => setMode("view")} onCancel={() => setMode("view")} mode="address" />}
 			</CardContent>
 		</Card>
 	);
