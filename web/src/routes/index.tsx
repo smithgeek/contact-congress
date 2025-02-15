@@ -239,12 +239,12 @@ function useSearch(query: string = "") {
 	});
 }
 
-function WelcomeCard() {
+function SearchCard() {
 	const [query, setQuery] = useState("");
 	const searchResults = useSearch(query);
 	const { handleSubmit, register } = useForm<{ query: string }>();
 	return (
-		<Card className="md:col-span-2">
+		<Card className="">
 			<CardHeader>
 				<CardTitle>
 					<h1 className="text-2xl">Contact Congress</h1>
@@ -341,11 +341,48 @@ function MyLegislatorsCard() {
 	);
 }
 
+function Hero() {
+	return (
+		<Card className="w-full flex-1">
+			<CardHeader>
+				<CardTitle className="text-2xl">How Contact My Congress Works</CardTitle>
+			</CardHeader>
+			<CardContent className="flex flex-col gap-4">
+				<div>
+					<h2 className="text-xl">🏛️ Find your legislators</h2>
+					<p className="ml-8">Enter your location and we'll let you know who your legislators are and how to contact them.</p>
+				</div>
+
+				<div>
+					<h2 className="text-xl">🔍 Find or Create a Message</h2>
+					<p className="ml-8">Browse pre-made messages or craft your own to share with others.</p>
+				</div>
+
+				<div>
+					<h2 className="text-xl">📩 Easily Contact Congress</h2>
+					{/* <p className="ml-8">With one click, autofill your representative’s contact form and send your message.</p> */}
+					<p className="ml-8">
+						Auto fill your own information and you have an easy copy and paste to send to your congress person.
+					</p>
+				</div>
+
+				<div>
+					<h2 className="text-xl">📢 Share & Mobilize</h2>
+					<p className="ml-8">
+						Share your message template on social media so others can contact their congress people effortlessly.
+					</p>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
 function Page() {
 	return (
 		<div className="px-2 mx-auto w-full max-w-[100rem] flex flex-col gap-2">
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-				<WelcomeCard />
+				<Hero />
+				<SearchCard />
 				<TrendingTopicsCard />
 				<MyLegislatorsCard />
 				<MyFavoritesCard />
