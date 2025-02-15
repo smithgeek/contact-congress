@@ -29,9 +29,15 @@ import { GlobeIcon, MailIcon, SearchIcon, StarIcon } from "lucide-react";
 import { Fragment, useState } from "react";
 import { useForm } from "react-hook-form";
 import { uuidv7 } from "uuidv7";
+import { z } from "zod";
+
+const pageSearchSchema = z.object({
+	editProfile: z.boolean().optional().catch(false),
+});
 
 export const Route = createFileRoute("/")({
 	component: Page,
+	validateSearch: pageSearchSchema,
 });
 
 function useTrendingMessages() {
@@ -282,7 +288,14 @@ function SearchCard() {
 
 function MyLegislatorsCard() {
 	const myLegislators = useMyLegislators();
-	const [mode, setMode] = useState<"view" | "edit">("view");
+	const [_mode, _setMode] = useState<"view" | "edit">("view");
+	const searchParams = Route.useSearch();
+	const navigate = useNavigate({ from: Route.fullPath });
+	function setMode(mode: "view" | "edit") {
+		navigate({ search: () => ({ editProfile: mode === "edit" ? true : undefined }) });
+	}
+	const mode = searchParams.editProfile ? "edit" : "view";
+
 	return (
 		<Card>
 			<CardHeader>
@@ -350,7 +363,14 @@ function Hero() {
 			<CardContent className="flex flex-col gap-4">
 				<div>
 					<h2 className="text-xl">🏛️ Find your legislators</h2>
-					<p className="ml-8">Enter your location and we'll let you know who your legislators are and how to contact them.</p>
+					<p className="ml-8">
+						<Link to="/" hash="my-legislators" search={{ editProfile: true }}>
+							<Button variant="link" className="p-0 text-md">
+								Enter
+							</Button>
+						</Link>{" "}
+						your location and we'll let you know who your legislators are and how to contact them.
+					</p>
 				</div>
 
 				<div>
@@ -362,7 +382,8 @@ function Hero() {
 					<h2 className="text-xl">📩 Easily Contact Congress</h2>
 					{/* <p className="ml-8">With one click, autofill your representative’s contact form and send your message.</p> */}
 					<p className="ml-8">
-						Auto fill your own information and you have an easy copy and paste to send to your congress person.
+						Easily fill in your details and get a ready-to-send message for your Congress member — just copy, paste, and take
+						action!
 					</p>
 				</div>
 
