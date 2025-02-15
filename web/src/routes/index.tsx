@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Tables } from "@/generated/database.types";
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase";
@@ -71,19 +80,71 @@ function useMyMessages() {
 	});
 }
 
-function TemplateList({ templates }: { templates: Pick<Tables<"templates">, "id" | "title">[] }) {
+const pageBuffer = 2;
+function TemplateList({ templates, itemsPerPage = 10 }: { templates: Pick<Tables<"templates">, "id" | "title">[]; itemsPerPage?: number }) {
+	const [page, setPage] = useState(0);
+	const totalPages = Math.ceil(templates.length / itemsPerPage);
+	const before: number[] = [];
+	const after: number[] = [];
+	for (let b = page - 1; b >= 0 && before.length < pageBuffer; b--) {
+		before.push(b);
+	}
+	for (let a = page + 1; a < totalPages && after.length < pageBuffer; a++) {
+		after.push(a);
+	}
 	return (
-		<div className="flex flex-col gap-1">
-			{templates.map((m) => {
-				return (
-					<Link to={`/messages/${m.id}`} key={m.id}>
-						<Button variant={"link"} className="text-left">
-							{m.title}
-						</Button>
-					</Link>
-				);
-			})}
-		</div>
+		<>
+			<div className="flex flex-col gap-1">
+				{templates.slice(page * itemsPerPage, page * itemsPerPage + itemsPerPage).map((m) => {
+					return (
+						<Link to={`/messages/${m.id}`} key={m.id}>
+							<Button variant={"link"} className="text-left">
+								{m.title}
+							</Button>
+						</Link>
+					);
+				})}
+			</div>
+			{totalPages > 1 && (
+				<Pagination>
+					<PaginationContent>
+						<PaginationItem disabled={page === 0}>
+							<PaginationPrevious onClick={() => setPage(page - 1)} />
+						</PaginationItem>
+						{page > pageBuffer && (
+							<PaginationItem>
+								<PaginationEllipsis />
+							</PaginationItem>
+						)}
+
+						{before.reverse().map((i) => (
+							<PaginationItem onClick={i === page ? undefined : () => setPage(i)}>
+								<PaginationLink isActive={i === page}>{i + 1}</PaginationLink>
+							</PaginationItem>
+						))}
+
+						<PaginationItem>
+							<PaginationLink isActive>{page + 1}</PaginationLink>
+						</PaginationItem>
+
+						{after.map((i) => (
+							<PaginationItem onClick={i === page ? undefined : () => setPage(i)}>
+								<PaginationLink isActive={i === page}>{i + 1}</PaginationLink>
+							</PaginationItem>
+						))}
+
+						{totalPages - page - pageBuffer > 0 && (
+							<PaginationItem>
+								<PaginationEllipsis />
+							</PaginationItem>
+						)}
+						<PaginationItem disabled={page === totalPages - 1}>
+							<PaginationNext onClick={() => setPage(page + 1)} />
+						</PaginationItem>
+					</PaginationContent>
+				</Pagination>
+			)}
+		</>
 	);
 }
 
@@ -188,19 +249,32 @@ function WelcomeCard() {
 				<CardTitle>
 					<h1 className="text-2xl">Contact Congress</h1>
 				</CardTitle>
-				<CardDescription>Find topics that are important to you and share them with your legislators.</CardDescription>
+				<CardDescription>
+					<p>Find topics that are important to you and share them with your legislators.</p>
+					<p>
+						<a href="#my-legislators">
+							<Button className="mx-0 px-0" variant="link">
+								Find my legislators
+							</Button>
+						</a>
+					</p>
+				</CardDescription>
 			</CardHeader>
-			<CardContent>
-				<form onSubmit={handleSubmit(({ query }) => setQuery(query))} className="flex gap-2 items-center">
-					<Input placeholder="Search" className="max-w-80" {...register("query")} />
-					<Button size="icon" pending={searchResults.isPending}>
-						<SearchIcon />
-					</Button>
-				</form>
-				{searchResults.data && searchResults.data.length > 0 && <TemplateList templates={searchResults.data} />}
-				{searchResults.data && searchResults.data.length === 0 && (
-					<Label className="text-muted-foreground italic">No results</Label>
-				)}
+			<CardContent className="flex gap-4">
+				<div>
+					<form onSubmit={handleSubmit(({ query }) => setQuery(query))} className="flex gap-2 items-center">
+						<Input placeholder="Search for topics" className="max-w-80 w-80" {...register("query")} />
+						<Button type="submit" size="icon" pending={searchResults.isPending}>
+							<SearchIcon />
+						</Button>
+					</form>
+					{searchResults.data && searchResults.data.length > 0 && (
+						<TemplateList templates={searchResults.data} key={searchResults.dataUpdatedAt} itemsPerPage={5} />
+					)}
+					{searchResults.data && searchResults.data.length === 0 && (
+						<Label className="text-muted-foreground italic">No results</Label>
+					)}
+				</div>
 			</CardContent>
 		</Card>
 	);
@@ -212,7 +286,7 @@ function MyLegislatorsCard() {
 	return (
 		<Card>
 			<CardHeader>
-				<div className="flex justify-between flex-row items-center">
+				<div className="flex justify-between flex-row items-center" id="my-legislators">
 					<h2 className="text-2xl">My Legislators</h2>
 					{mode === "view" && <Button onClick={() => setMode("edit")}>Update</Button>}
 				</div>

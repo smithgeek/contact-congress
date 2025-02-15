@@ -11,11 +11,18 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as PrivacyImport } from './routes/privacy'
 import { Route as AccountImport } from './routes/account'
 import { Route as IndexImport } from './routes/index'
 import { Route as MessagesTemplateIdImport } from './routes/messages/$templateId'
 
 // Create/Update Routes
+
+const PrivacyRoute = PrivacyImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AccountRoute = AccountImport.update({
   id: '/account',
@@ -53,6 +60,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountImport
       parentRoute: typeof rootRoute
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyImport
+      parentRoute: typeof rootRoute
+    }
     '/messages/$templateId': {
       id: '/messages/$templateId'
       path: '/messages/$templateId'
@@ -68,12 +82,14 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/privacy': typeof PrivacyRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/privacy': typeof PrivacyRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
 }
 
@@ -81,27 +97,30 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/privacy': typeof PrivacyRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/messages/$templateId'
+  fullPaths: '/' | '/account' | '/privacy' | '/messages/$templateId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/messages/$templateId'
-  id: '__root__' | '/' | '/account' | '/messages/$templateId'
+  to: '/' | '/account' | '/privacy' | '/messages/$templateId'
+  id: '__root__' | '/' | '/account' | '/privacy' | '/messages/$templateId'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  PrivacyRoute: typeof PrivacyRoute
   MessagesTemplateIdRoute: typeof MessagesTemplateIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  PrivacyRoute: PrivacyRoute,
   MessagesTemplateIdRoute: MessagesTemplateIdRoute,
 }
 
@@ -117,6 +136,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/account",
+        "/privacy",
         "/messages/$templateId"
       ]
     },
@@ -125,6 +145,9 @@ export const routeTree = rootRoute
     },
     "/account": {
       "filePath": "account.tsx"
+    },
+    "/privacy": {
+      "filePath": "privacy.tsx"
     },
     "/messages/$templateId": {
       "filePath": "messages/$templateId.tsx"

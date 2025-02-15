@@ -104,6 +104,11 @@ function PageStructure() {
 				</DevToolsWrapper>
 				<Toaster />
 				<footer className="min-h-10 text-muted-foreground flex justify-center items-center gap-4">
+					<Link to="/privacy">
+						<Button variant="link" className="text-muted-foreground">
+							Privacy Policy
+						</Button>
+					</Link>
 					<ReportIssueLink className="text-muted-foreground" />
 					<a href="https://github.com/smithgeek/contact-congress">
 						<GithubIcon className="size-6 block dark:hidden" />
