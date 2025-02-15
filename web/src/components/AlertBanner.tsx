@@ -5,11 +5,9 @@ import { Alert, AlertDescription } from "./ui/alert";
 
 export function AlertBanner({ children, className }: { children: ReactNode; className?: string }) {
 	return (
-		<Alert
-			className={cn("border-2 bg-orange-500 dark:bg-orange-900 border-orange-500 dark:border-orange-900 dark:text-white", className)}
-		>
-			<AlertDescription className="flex gap-1 items-center">
-				<AlertTriangleIcon />
+		<Alert className={cn("bg-orange-500 dark:bg-orange-900 dark:text-white px-2", className)}>
+			<AlertDescription className="flex gap-2 items-center">
+				<AlertTriangleIcon className="size-8 flex-none" />
 				{children}
 			</AlertDescription>
 		</Alert>
