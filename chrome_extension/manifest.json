@@ -1,7 +1,7 @@
 {
 	"name": "Contact My Congress",
 	"description": "Makes it easy to take messages from contactmycongress.com and fill out contact forms.",
-	"version": "1.0",
+	"version": "1.1",
 	"manifest_version": 3,
 	"action": {
 		"default_popup": "popup/popup.html",

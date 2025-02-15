@@ -25,7 +25,9 @@
 function fillForm() {
 	chrome.storage.local.get(["formData"], data => {
 		const formData = data.formData;
-		if (formData && location.origin === formData.template.validOrigin) {
+		if (formData) {
+			const correctSite =
+				location.origin === formData.template.validOrigin;
 			const inputs = document.querySelectorAll(
 				"form input, form textarea, form select"
 			);
@@ -62,11 +64,12 @@ function fillForm() {
 						input.value = formData.user.phone;
 					} else if (text.includes("email")) {
 						input.value = formData.user.email;
-					} else if (text.includes("subject")) {
+					} else if (text.includes("subject") && correctSite) {
 						input.value = formData.template.subject;
 					} else if (
-						text.includes("message") ||
-						text.includes("comment")
+						(text.includes("message") ||
+							text.includes("comment")) &&
+						correctSite
 					) {
 						input.value = formData.template.message;
 					}
