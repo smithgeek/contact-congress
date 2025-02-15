@@ -1,16 +1,31 @@
 var btn = document.getElementById("clearButton");
 
+function createTable(cells) {
+	const table = document.getElementById("table");
+	table.innerHTML = "";
+	for (const cell of cells) {
+		const label = document.createElement("label");
+		label.textContent = cell;
+		table.appendChild(label);
+	}
+}
+
 chrome.storage.local.get(["formData"], msg => {
-	if (msg.formData && msg.formData.template.validOrigin === location.origin) {
-		document.getElementById("msg").innerText = msg.formData.template.title;
+	if (msg.formData) {
+		createTable([
+			"Message",
+			msg.formData.template.title,
+			"For Site",
+			msg.formData.template.validOrigin,
+		]);
 		btn.style.display = "block";
 	} else {
-		document.getElementById("msg").innerText = "None";
+		createTable(["Message", "None"]);
 	}
 });
 
 btn.addEventListener("click", () => {
 	chrome.storage.local.remove(["formData"]);
-	document.getElementById("msg").innerText = "None";
+	createTable(["Message", "None"]);
 	btn.style.display = "none";
 });

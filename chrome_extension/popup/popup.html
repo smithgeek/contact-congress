@@ -1,11 +1,11 @@
 <html>
 
 <body>
-	<div style="display: flex; gap: 2rem; align-items: center; width: 500px">
-		<label>Current Message: </label>
-		<label id="msg"></label>
-		<button id="clearButton" style="display: none;">Clear</button>
+	<div style="display: grid; grid-template-columns: auto 1fr; column-gap: 1rem; row-gap: 0.5rem; align-items: center; width: 500px; margin-bottom: 1rem;"
+		id="table">
 	</div>
+	<button id="clearButton" style="display: none;">Clear</button>
+	<div id="dbg"></div>
 	<script src="/popup/popup.js"></script>
 </body>
 

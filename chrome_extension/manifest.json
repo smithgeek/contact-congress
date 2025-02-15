@@ -13,7 +13,10 @@
 			"js": ["scripts/formFiller.js"]
 		},
 		{
-			"matches": ["https://www.contactmycongress.com/*"],
+			"matches": [
+				"https://www.contactmycongress.com/*",
+				"https://contactcongress.brent-desktop.smithgeek.dev/*"
+			],
 			"js": ["scripts/dataProvider.js"]
 		}
 	],
@@ -26,7 +29,7 @@
 	},
 	"browser_specific_settings": {
 		"gecko": {
-			"id": "addon@example.com"
+			"id": "{6b3a8866-71dd-443d-bbc0-3c0010b5f3a7}"
 		}
 	}
 }
