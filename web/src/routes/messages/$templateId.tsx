@@ -704,8 +704,8 @@ function Page({
 											The following {missingProperties.length > 1 ? "are" : "is"} missing, but used in this message:{" "}
 										</span>
 										{missingProperties.map((m) => m.join(".")).join(", ")}
-										<FixSenderProfileDialog />
 									</Label>
+									<FixSenderProfileDialog />
 								</AlertBanner>
 							)}
 							<h1 className="text-3xl">{template?.title}</h1>
