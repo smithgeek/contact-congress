@@ -708,7 +708,7 @@ function Page({
 									<FixSenderProfileDialog />
 								</AlertBanner>
 							)}
-							<h1 className="text-3xl">{template?.title}</h1>
+							<h1 className="text-3xl break-all">{template?.title}</h1>
 						</>
 					)}
 					{editedTemplate && (
@@ -741,7 +741,7 @@ function Page({
 					)}
 					{mode === "send" && (
 						<CopyArea className="flex-1" text={template?.subject} title="Subject">
-							<span>{template?.subject}</span>
+							<span className="break-all">{template?.subject}</span>
 						</CopyArea>
 					)}
 
@@ -761,7 +761,7 @@ function Page({
 					{mode === "send" && (
 						<>
 							<CopyArea text={renderedText} title="Message">
-								<div className="whitespace-pre-wrap">{renderedText}</div>
+								<div className="whitespace-pre-wrap break-all">{renderedText}</div>
 							</CopyArea>
 
 							{customSenderProperties.length > 0 && (
