@@ -103,7 +103,7 @@ function TemplateList({ templates, itemsPerPage = 10 }: { templates: Pick<Tables
 			<div className="flex flex-col gap-1">
 				{templates.slice(page * itemsPerPage, page * itemsPerPage + itemsPerPage).map((m) => {
 					return (
-						<Link to={`/messages/${m.id}`} key={m.id}>
+						<Link to="/messages/$templateId" params={{ templateId: m.id }} key={m.id}>
 							<Button variant={"link"} className="text-left">
 								{m.title}
 							</Button>
