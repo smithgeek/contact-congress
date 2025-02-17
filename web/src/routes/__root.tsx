@@ -15,6 +15,7 @@ import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
 import { QueryClient, useMutation } from "@tanstack/react-query";
 import { LogOutIcon, MenuIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
+import { createPortal } from "react-dom";
 
 function PageContent() {
 	return (
@@ -91,7 +92,7 @@ function Navbar() {
 function PageStructure() {
 	return (
 		<>
-			<HeadContent />
+			{createPortal(<HeadContent />, document.getElementById("htmlHead")!)}
 			<div className="flex flex-col min-h-[100vh] pb-2">
 				<Navbar />
 				<div className="flex-1 flex flex-col">
@@ -127,7 +128,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			},
 			{
 				property: "og:image",
-				content: "/images/ezgif-7c9131410e70a0.jpg",
+				content: "https://contactmycongress.com/images/ezgif-7c9131410e70a0.jpg",
 			},
 		],
 	}),

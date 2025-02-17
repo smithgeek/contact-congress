@@ -62,11 +62,11 @@ export const Route = createFileRoute("/messages/$templateId")({
 			},
 			{
 				property: "og:title",
-				content: `${args.loaderData?.title ?? "Message"} | Contact My Congress`,
+				content: `${args.loaderData?.title ?? "Message"}`,
 			},
 			{
 				property: "og:image",
-				content: "/images/ezgif-7c9131410e70a0.jpg",
+				content: "https://contactmycongress.com/images/ezgif-7c9131410e70a0.jpg",
 			},
 			{
 				property: "og:description",
