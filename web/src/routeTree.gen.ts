@@ -15,6 +15,7 @@ import { Route as PrivacyImport } from './routes/privacy'
 import { Route as AccountImport } from './routes/account'
 import { Route as IndexImport } from './routes/index'
 import { Route as MessagesTemplateIdImport } from './routes/messages/$templateId'
+import { Route as MessagesSlugTemplateIdImport } from './routes/messages/$slug.$templateId'
 
 // Create/Update Routes
 
@@ -39,6 +40,12 @@ const IndexRoute = IndexImport.update({
 const MessagesTemplateIdRoute = MessagesTemplateIdImport.update({
   id: '/messages/$templateId',
   path: '/messages/$templateId',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MessagesSlugTemplateIdRoute = MessagesSlugTemplateIdImport.update({
+  id: '/messages/$slug/$templateId',
+  path: '/messages/$slug/$templateId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,6 +81,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MessagesTemplateIdImport
       parentRoute: typeof rootRoute
     }
+    '/messages/$slug/$templateId': {
+      id: '/messages/$slug/$templateId'
+      path: '/messages/$slug/$templateId'
+      fullPath: '/messages/$slug/$templateId'
+      preLoaderRoute: typeof MessagesSlugTemplateIdImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -84,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/privacy': typeof PrivacyRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
+  '/messages/$slug/$templateId': typeof MessagesSlugTemplateIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -91,6 +106,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/privacy': typeof PrivacyRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
+  '/messages/$slug/$templateId': typeof MessagesSlugTemplateIdRoute
 }
 
 export interface FileRoutesById {
@@ -99,14 +115,31 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/privacy': typeof PrivacyRoute
   '/messages/$templateId': typeof MessagesTemplateIdRoute
+  '/messages/$slug/$templateId': typeof MessagesSlugTemplateIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/privacy' | '/messages/$templateId'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/privacy'
+    | '/messages/$templateId'
+    | '/messages/$slug/$templateId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/privacy' | '/messages/$templateId'
-  id: '__root__' | '/' | '/account' | '/privacy' | '/messages/$templateId'
+  to:
+    | '/'
+    | '/account'
+    | '/privacy'
+    | '/messages/$templateId'
+    | '/messages/$slug/$templateId'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/privacy'
+    | '/messages/$templateId'
+    | '/messages/$slug/$templateId'
   fileRoutesById: FileRoutesById
 }
 
@@ -115,6 +148,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   PrivacyRoute: typeof PrivacyRoute
   MessagesTemplateIdRoute: typeof MessagesTemplateIdRoute
+  MessagesSlugTemplateIdRoute: typeof MessagesSlugTemplateIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -122,6 +156,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   PrivacyRoute: PrivacyRoute,
   MessagesTemplateIdRoute: MessagesTemplateIdRoute,
+  MessagesSlugTemplateIdRoute: MessagesSlugTemplateIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -137,7 +172,8 @@ export const routeTree = rootRoute
         "/",
         "/account",
         "/privacy",
-        "/messages/$templateId"
+        "/messages/$templateId",
+        "/messages/$slug/$templateId"
       ]
     },
     "/": {
@@ -151,6 +187,9 @@ export const routeTree = rootRoute
     },
     "/messages/$templateId": {
       "filePath": "messages/$templateId.tsx"
+    },
+    "/messages/$slug/$templateId": {
+      "filePath": "messages/$slug.$templateId.tsx"
     }
   }
 }

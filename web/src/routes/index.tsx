@@ -28,6 +28,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GlobeIcon, MailIcon, SearchIcon, StarIcon } from "lucide-react";
 import { Fragment, useState } from "react";
 import { useForm } from "react-hook-form";
+import slugify from "slugify";
 import { uuidv7 } from "uuidv7";
 import { z } from "zod";
 
@@ -103,7 +104,7 @@ function TemplateList({ templates, itemsPerPage = 10 }: { templates: Pick<Tables
 			<div className="flex flex-col gap-1">
 				{templates.slice(page * itemsPerPage, page * itemsPerPage + itemsPerPage).map((m) => {
 					return (
-						<Link to="/messages/$templateId" params={{ templateId: m.id }} key={m.id}>
+						<Link to="/messages/$slug/$templateId" params={{ templateId: m.id, slug: slugify(m.title) }} key={m.id}>
 							<Button variant={"link"} className="text-left">
 								{m.title}
 							</Button>
@@ -155,7 +156,6 @@ function TemplateList({ templates, itemsPerPage = 10 }: { templates: Pick<Tables
 }
 
 function MyMessagesCard() {
-	const navigate = useNavigate();
 	const myMessages = useMyMessages();
 
 	return (
@@ -163,19 +163,8 @@ function MyMessagesCard() {
 			<CardHeader className="flex flex-row justify-between">
 				<h2 className="text-2xl">My Messages</h2>
 				<Authenticated>
-					<Link to="/messages/$templateId" params={{ templateId: uuidv7() }} search={{ new: true }}>
-						<Button
-							onClick={() => {
-								navigate({
-									to: "/messages/$templateId",
-									params: {
-										templateId: uuidv7(),
-									},
-								});
-							}}
-						>
-							Create
-						</Button>
+					<Link to="/messages/$slug/$templateId" params={{ templateId: uuidv7(), slug: "new-template" }} search={{ new: true }}>
+						<Button>Create</Button>
 					</Link>
 				</Authenticated>
 			</CardHeader>
