@@ -1,10 +1,18 @@
 {
-  "name": "contact_my_congress_chrome_extension",
-  "version": "1.0.0",
-  "main": "index.js",
-  "author": "smithgeek",
-  "license": "MIT",
-  "dependencies": {
-    "chrome-types": "0.1.338"
-  }
+	"name": "contact_my_congress_chrome_extension",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "smithgeek",
+	"license": "MIT",
+	"dependencies": {
+		"chrome-types": "0.1.338"
+	},
+	"devDependencies": {
+		"web-ext": "8.4.0"
+	},
+	"scripts": {
+		"android:test": "web-ext run -t firefox-android --adb-device R5CT71GMVCE --firefox-apk org.mozilla.fenix",
+		"lint": "web-ext lint",
+		"build": "web-ext build"
+	}
 }
