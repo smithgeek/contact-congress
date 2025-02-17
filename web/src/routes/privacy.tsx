@@ -4,6 +4,13 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/privacy")({
 	component: RouteComponent,
+	head: () => ({
+		meta: [
+			{
+				title: "Privacy Policy | Contact My Congress",
+			},
+		],
+	}),
 });
 
 function RouteComponent() {

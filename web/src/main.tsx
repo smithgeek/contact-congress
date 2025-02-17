@@ -17,8 +17,16 @@ import "./index.css";
 import { SupabaseAuthProvider } from "./lib/useAuth";
 import { DevToolsWrapper } from "./lib/useDevTools";
 
+const queryClient = new QueryClient();
+
 // Create a new router instance
-const router = createRouter({ routeTree, scrollRestoration: true });
+const router = createRouter({
+	routeTree,
+	scrollRestoration: true,
+	context: { queryClient },
+	defaultPreload: "intent",
+	defaultPreloadStaleTime: 0,
+});
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
@@ -26,8 +34,6 @@ declare module "@tanstack/react-router" {
 		router: typeof router;
 	}
 }
-
-const queryClient = new QueryClient();
 
 function App() {
 	return (

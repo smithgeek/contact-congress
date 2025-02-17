@@ -29,7 +29,7 @@ import { SenderProfile, useSenderProfile } from "@/lib/useSenderProfile";
 import { useSessionStorageState } from "@/lib/useSessionStorageState";
 import { cn } from "@/lib/utils";
 import { Legislator } from "@/types/legislature";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Liquid } from "liquidjs";
 import { ExternalLinkIcon, FlagIcon, PencilIcon, PhoneIcon, StarIcon, Trash2Icon } from "lucide-react";
@@ -52,6 +52,28 @@ type TemplateSearch = z.infer<typeof templatePageSearchSchema>;
 export const Route = createFileRoute("/messages/$templateId")({
 	component: PageWrapper,
 	validateSearch: templatePageSearchSchema,
+	loader: ({ context: { queryClient }, params }) => {
+		return queryClient.ensureQueryData(templateQueryOptions(params.templateId));
+	},
+	head: (args) => ({
+		meta: [
+			{
+				title: `${args.loaderData?.title ?? "Message"} | Contact My Congress`,
+			},
+			{
+				property: "og:title",
+				content: `${args.loaderData?.title ?? "Message"} | Contact My Congress`,
+			},
+			{
+				property: "og:image",
+				content: "/images/ezgif-7c9131410e70a0.jpg",
+			},
+			{
+				property: "og:description",
+				content: "Contact Congress",
+			},
+		],
+	}),
 });
 
 interface FormData {
@@ -190,7 +212,7 @@ function LegislatorDetails({ legislator, onActivity }: { legislator: SimplifiedL
 				</Button>
 			</a>
 			<span>Website:</span>
-			<a href={legislator.currentTerm.url} target="_blank" className="overflow-hidden">
+			<a href={legislator.currentTerm.url} target="_blank" className="overflow-hidden" rel="noreferrer">
 				<Button variant="link" size="xs" className="m-0 p-0">
 					{legislator.currentTerm.url}
 				</Button>
@@ -202,11 +224,11 @@ function LegislatorDetails({ legislator, onActivity }: { legislator: SimplifiedL
 	);
 }
 
-function useTemplate(id: string) {
-	return useQuery<Tables<"templates"> | null>({
-		queryKey: queryKeys.template(id),
+function templateQueryOptions(templateId: string) {
+	return queryOptions<Tables<"templates"> | null>({
+		queryKey: queryKeys.template(templateId),
 		queryFn: async () => {
-			const result = await supabase.from("templates").select().eq("id", id);
+			const result = await supabase.from("templates").select().eq("id", templateId);
 			return result.data?.[0] ?? null;
 		},
 	});
@@ -345,7 +367,7 @@ function getInitialEditTemplate(template: Tables<"templates"> | null, searchPara
 function PageWrapper() {
 	const { templateId } = Route.useParams();
 	const searchParams = Route.useSearch();
-	const templateQuery = useTemplate(templateId);
+	const templateQuery = useSuspenseQuery(templateQueryOptions(templateId));
 	const { session } = useAuth();
 	if (templateQuery.isPending) {
 		return null;
@@ -560,6 +582,7 @@ function Page({
 		.map((s) => s.slice(1));
 
 	const missingProperties = usedProperties.filter((usedProp) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let value: any = senderProfileQuery.data;
 		for (let i = 0; i < usedProp.length; ++i) {
 			const key = usedProp[i].toString();
@@ -819,6 +842,7 @@ function Page({
 											});
 											sendActivity.mutate({ id: templateId, activity: "email" });
 										}}
+										rel="noreferrer"
 									>
 										<Button className="flex gap-2">
 											Contact

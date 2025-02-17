@@ -13,6 +13,13 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/account")({
 	component: RouteComponent,
+	head: () => ({
+		meta: [
+			{
+				title: "Account | Contact My Congress",
+			},
+		],
+	}),
 });
 
 interface UserAccountForm {

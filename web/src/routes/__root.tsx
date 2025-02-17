@@ -1,4 +1,4 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Link, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 
 // components
@@ -13,7 +13,7 @@ import { GithubIconWhite } from "@/icons/GithubIconWhite";
 import { supabase } from "@/lib/supabase";
 import { Authenticated } from "@/lib/useAuth";
 import { DevToolsWrapper } from "@/lib/useDevTools";
-import { useMutation } from "@tanstack/react-query";
+import { QueryClient, useMutation } from "@tanstack/react-query";
 import { LogOutIcon, MenuIcon, MoonIcon, SunIcon, User2Icon } from "lucide-react";
 
 function PageContent() {
@@ -91,6 +91,7 @@ function Navbar() {
 function PageStructure() {
 	return (
 		<>
+			<HeadContent />
 			<div className="flex flex-col min-h-[100vh] pb-2">
 				<Navbar />
 				<div className="flex-1 flex flex-col">
@@ -117,6 +118,17 @@ function PageStructure() {
 	);
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
 	component: () => <PageStructure />,
+	head: () => ({
+		meta: [
+			{
+				title: "Contact My Congress",
+			},
+			{
+				property: "og:image",
+				content: "/images/ezgif-7c9131410e70a0.jpg",
+			},
+		],
+	}),
 });
