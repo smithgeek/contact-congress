@@ -1,4 +1,5 @@
 import { AlertBanner } from "@/components/AlertBanner";
+import { BrowserExtensionCard } from "@/components/BrowserExtensionCard";
 import { DistrictLabel } from "@/components/DistrictLabel";
 import { LegislatorImage } from "@/components/LegislatorImage";
 import { LegislatorTypeLabel } from "@/components/LegislatorTypeLabel";
@@ -863,6 +864,7 @@ function Page({
 							)}
 						</>
 					)}
+					<BrowserExtensionCard />
 					{editedTemplate && (
 						<>
 							{!userIsAuthor && (
