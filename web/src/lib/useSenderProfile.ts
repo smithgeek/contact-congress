@@ -9,15 +9,15 @@ export interface LegislativeDistrict {
 }
 
 export interface SenderProfile {
-	name: string;
-	address: {
-		street: string;
-		city: string;
-		state: string;
-		zip: string;
+	name?: string;
+	address?: {
+		street?: string;
+		city?: string;
+		state?: string;
+		zip?: string;
 	};
-	email: string;
-	phoneNumber: string;
+	email?: string;
+	phoneNumber?: string;
 	district?: LegislativeDistrict | null;
 }
 

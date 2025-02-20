@@ -10,7 +10,7 @@ import { Label } from "./ui/label";
 
 function getOneShotAddress(profile: SenderProfile | null) {
 	if (!profile) return "";
-	return [profile.address.street, profile.address.city, profile.address.state, profile.address.zip].filter(Boolean).join(" ");
+	return [profile.address?.street, profile.address?.city, profile.address?.state, profile.address?.zip].filter(Boolean).join(" ");
 }
 
 export function SenderProfileForm({
@@ -55,7 +55,7 @@ export function SenderProfileForm({
 		mode === "full" ||
 		(senderProfileQuery.data?.name?.trim().length ?? 0) > 0 ||
 		(senderProfileQuery.data?.email?.trim().length ?? 0) > 0 ||
-		(senderProfileQuery.data?.phoneNumber.trim().length ?? 0) > 0;
+		(senderProfileQuery.data?.phoneNumber?.trim().length ?? 0) > 0;
 
 	const personalInfo = (
 		<>
